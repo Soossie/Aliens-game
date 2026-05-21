@@ -1,0 +1,1181 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using System.Runtime.Serialization.Formatters.Binary;
+using TMPro;
+using Unity.VisualScripting;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.UI;
+
+public class GameManager : MonoBehaviour
+{
+    private static GameManager _instance;
+    public readonly List<LevelData> Levels = new();
+    public int currentScore;
+    public int currentLevel;
+    public float timeLimit = 600f;
+    private float lastContinueTime;
+    public string lastSelectedObject;
+    
+    public static float MusicVolume = 0.5f;
+    public static float SfxVolume = 1f;
+    
+    public bool inLevel;
+    public bool isPaused;
+    private bool inLevelMenu;
+    private bool inSettingsMenu;
+    private bool selectedWithKeyboard;
+    private bool newGame;
+    private bool won;
+    private bool allLemmingsSpawned;
+    private bool gameOver;
+    private bool timerRunning;
+    [SerializeField]
+    private int latestLevel;
+
+    private TextMeshProUGUI scoreText;
+    private TextMeshProUGUI timeText;
+    public Texture2D cursorTexture;
+    private PlayerInput input;
+    private EventSystem eventSystem;
+    
+    
+    //Initialization
+    void Awake()
+    {
+        if (!_instance)
+        {
+            DontDestroyOnLoad(gameObject);
+            _instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+    
+    void Start()
+    {
+        Levels.Add(new LevelData
+        {
+            LevelName = "Level 1",
+            IsCompleted = false,
+            PerfectScore = false,
+            FirstTimeInLevel = true,
+            Assets = new[] { 
+                "Graphics/background_lvl_1", 
+                "Graphics/bitmap_lvl_1", 
+                "Level 1 Song" 
+            },
+            RequiredScore = 5,
+            SpawnPoint = new Vector3(-9.916667f, -3.222222f),
+            GoalPoint = new Vector3(8.166667f, -8.222222f),
+            LemmingsAmount = 10,
+            Unlocks = new[] {"Floater", "Basher"}
+        });
+        Levels.Add(new LevelData
+        {
+            LevelName = "Level 2",
+            IsCompleted = false,
+            PerfectScore = false,
+            FirstTimeInLevel = true,
+            Assets = new[] { 
+                "Graphics/background_lvl_2", 
+                "Graphics/bitmap_lvl_2", 
+                "Level 2 Song" 
+            },
+            RequiredScore = 10,
+            SpawnPoint = new Vector3(-9.722222f, 0.25f),
+            GoalPoint = new Vector3(7.666667f, -0.8611111f),
+            LemmingsAmount = 20,
+            Unlocks = new[] {"Floater", "Basher", "Blocker", "Builder"}
+        });
+        Levels.Add(new LevelData
+        {
+            LevelName = "Level 3",
+            IsCompleted = false,
+            PerfectScore = false,
+            FirstTimeInLevel = true,
+            Assets = new[] { 
+                "Graphics/background_lvl_3", 
+                "Graphics/bitmap_lvl_3", 
+                "Level 3 Song" 
+            },
+            RequiredScore = 15,
+            SpawnPoint = new Vector3(-14.05556f, -3.402778f),
+            GoalPoint = new Vector3(14.47222f, -2.263889f),
+            LemmingsAmount = 25,
+            Unlocks = new[] {"Floater", "Basher", "Blocker", "Builder", "Climber", "Digger"}
+        });
+        /*
+        Levels.Add(new LevelData
+        {
+            LevelName = "Level 4",
+            IsCompleted = false,
+            PerfectScore = false,
+            FirstTimeInLevel = true,
+            Assets = new[] { 
+                "Graphics/background test 2w-2", 
+                "Graphics/bitmap_lvl_1", 
+                "Level 4 Song" 
+            },
+            RequiredScore = 20,
+            SpawnPoint = new Vector3(0f, 0f),
+            GoalPoint = new Vector3(0f, 0f),
+            LemmingsAmount = 25,
+            Unlocks = new[] {"Floater", "Basher", "Blocker", "Builder", "Climber", "Digger"}
+        });
+        */
+        Cursor.SetCursor(cursorTexture, Vector2.zero, CursorMode.Auto);
+        
+        Load();
+        SubscribeToInput();
+        ControlsMenuSetup();
+        
+        //GameObject.Find("SFX Volume Slider").GetComponent<Slider>().value = SfxVolume;
+        //GameObject.Find("Music Volume Slider").GetComponent<Slider>().value = MusicVolume;
+    }
+
+    void Update()
+    {
+        if (inLevel && !isPaused && timerRunning)
+            Timer();
+        
+        if ((GameObject.FindGameObjectsWithTag("Lemming").Length + currentScore < Levels[currentLevel].RequiredScore 
+             || GameObject.FindGameObjectsWithTag("Lemming").Length == 0 ||
+             timeLimit == 0) && allLemmingsSpawned && inLevel && !gameOver && !isPaused)
+        {
+            Debug.Log("Game Over");
+            StartCoroutine(LevelEnd());
+        }                              
+        //Debug.Log(lastSelectedObject);
+        Cursor.visible = input.currentControlScheme == "Keyboard&Mouse";
+    }
+    
+    //Scene management
+    public void LoadLevel(string levelName)
+    {
+        Time.timeScale = 1;
+        isPaused = false;
+        StopAllCoroutines();
+        Debug.Log("Loading level: " + levelName);
+        currentLevel = Levels.FindIndex(level => level.LevelName == levelName);
+        Debug.Log("Current level index: " + currentLevel);
+        SceneManager.LoadScene(2);
+        StartCoroutine(LevelStart("Level"));
+    }
+    
+    private IEnumerator LevelStart(string sceneName)
+    {
+        MusicManager.StopMusic();
+        yield return new WaitUntil(() => SceneManager.GetActiveScene().name == "Loading");
+        SceneManager.LoadScene(1);
+        yield return new WaitUntil(() => SceneManager.GetActiveScene().name == sceneName);
+        input.actions.FindActionMap("In Menu").Disable();
+        inLevel = true;
+        won = false;
+        allLemmingsSpawned = false;
+        gameOver = false;
+        timeLimit = 600f;
+        currentScore = 0;
+        SubscribeToInput();
+        
+        scoreText = GameObject.Find("ScoreCounter").GetComponent<TextMeshProUGUI>();
+        timeText = GameObject.Find("Timer").GetComponent<TextMeshProUGUI>();
+        scoreText.text = "Aliens required: " + currentScore + " / " + Levels[currentLevel].RequiredScore;
+        timeText.text = timeLimit.ToString("F0");
+
+        if (newGame)
+        {
+            newGame = false;
+            latestLevel = 0;
+            foreach (var t in Levels)
+            {
+                t.FirstTimeInLevel = true;
+                t.PerfectScore = false;
+                t.IsCompleted = false;
+            }
+
+            yield return StartCoroutine(StartCutscene());
+        }
+        else
+        {
+            GameObject.Find("Cutscene Canvas").GetComponent<Canvas>().enabled = false;
+        }
+        
+        if (Levels[currentLevel].FirstTimeInLevel)
+        {
+            Levels[currentLevel].FirstTimeInLevel = false;
+            Save();
+            var buttonslist = new List<string>(Levels[currentLevel].Unlocks) {"Kill"};
+            buttonslist.Insert(0, "Kill");
+            buttonslist.Insert(1, "Normal");
+            buttonslist.Insert(buttonslist.Count-1, "Normal");
+
+            foreach (var t in Levels[currentLevel].Unlocks)
+            {
+                AudioManager.PlaySound(SoundType.RoleUnlock);
+                Color panelColor = GameObject.Find(t + " Panel").GetComponent<Image>().color;
+                GameObject.Find(t + " Button").GetComponent<Button>().interactable = true;
+
+                for (float i = panelColor.a; i > 0f; i -= 5f / 255f)
+                {
+                    panelColor.a -= 5f / 255f;
+                    GameObject.Find(t + " Panel").GetComponent<Image>().color = panelColor;
+                    yield return new WaitForSeconds(0.02f);
+                }
+
+                int index = buttonslist.IndexOf(t);
+                var navigation = GameObject.Find(t + " Button").GetComponent<Button>().navigation;
+                navigation.selectOnLeft = GameObject.Find(buttonslist[index - 1] + " Button").GetComponent<Button>();
+                navigation.selectOnRight = GameObject.Find(buttonslist[index + 1] + " Button").GetComponent<Button>();
+                GameObject.Find(t + " Button").GetComponent<Button>().navigation = navigation;
+            }
+
+            var killNav = GameObject.Find("Kill Button").GetComponent<Button>().navigation;
+            killNav.selectOnRight = GameObject.Find(buttonslist[1] + " Button").GetComponent<Button>();
+            killNav.selectOnLeft = GameObject.Find(buttonslist[^2] + " Button").GetComponent<Button>();
+            GameObject.Find("Kill Button").GetComponent<Button>().navigation = killNav;
+            
+            var normalNav = GameObject.Find("Normal Button").GetComponent<Button>().navigation;
+            normalNav.selectOnLeft = GameObject.Find("Kill Button").GetComponent<Button>();
+            normalNav.selectOnRight = GameObject.Find(buttonslist[2] + " Button").GetComponent<Button>();
+            GameObject.Find("Normal Button").GetComponent<Button>().navigation = normalNav;
+
+        }
+        else
+        {
+            var buttonslist = new List<string>(Levels[currentLevel].Unlocks) {"Kill"};
+            buttonslist.Insert(0, "Kill");
+            buttonslist.Insert(1, "Normal");
+            
+            foreach (var t in Levels[currentLevel].Unlocks)
+            {
+                Color panelColor = GameObject.Find(t + " Panel").GetComponent<Image>().color;
+                panelColor.a = 0f;
+                GameObject.Find(t + " Panel").GetComponent<Image>().color = panelColor;
+                GameObject.Find(t + " Button").GetComponent<Button>().interactable = true;
+                
+                int index = buttonslist.IndexOf(t);
+                var navigation = GameObject.Find(t + " Button").GetComponent<Button>().navigation;
+                navigation.selectOnLeft = GameObject.Find(buttonslist[index - 1] + " Button").GetComponent<Button>();
+                navigation.selectOnRight = GameObject.Find(buttonslist[index + 1] + " Button").GetComponent<Button>();
+                GameObject.Find(t + " Button").GetComponent<Button>().navigation = navigation;
+            }
+            
+            var killNav = GameObject.Find("Kill Button").GetComponent<Button>().navigation;
+            killNav.selectOnRight = GameObject.Find(buttonslist[1] + " Button").GetComponent<Button>();
+            killNav.selectOnLeft = GameObject.Find(buttonslist[^2] + " Button").GetComponent<Button>();
+            GameObject.Find("Kill Button").GetComponent<Button>().navigation = killNav;
+            
+            var normalNav = GameObject.Find("Normal Button").GetComponent<Button>().navigation;
+            normalNav.selectOnLeft = GameObject.Find("Kill Button").GetComponent<Button>();
+            normalNav.selectOnRight = GameObject.Find(buttonslist[2] + " Button").GetComponent<Button>();
+            GameObject.Find("Normal Button").GetComponent<Button>().navigation = normalNav;
+
+        }
+        ControlsLevelSetup();
+        MusicManager.SetMusicVolume(MusicVolume);
+        MusicManager.PlayMusic(Resources.Load<AudioClip>("Sounds/" + Levels[currentLevel].Assets[2]));
+        
+        for (int i = 0; i < Levels[currentLevel].LemmingsAmount; i++)
+        {
+            if (!inLevel) break;
+            Instantiate(Resources.Load("Prefabs/Normal"), Levels[currentLevel].SpawnPoint, Quaternion.identity);
+            //Debug.Log("Lemming Spawned, total: " + (i + 1));
+            yield return new WaitForSeconds(1.5f); //1.5f
+        }
+        
+        allLemmingsSpawned = true;
+    }
+    
+    private IEnumerator MainMenuLoader()
+    {
+        AudioManager.PlaySound(SoundType.UIClickIn);
+        Time.timeScale = 1;
+        input.actions.FindActionMap("In Menu").Disable();
+        input.actions.FindActionMap("In Level").Enable();
+        eventSystem.GetComponent<InputSystemUIInputModule>().move = InputActionReference.Create(input.actions.FindActionMap("In Level").FindAction("Navigate"));
+        eventSystem.GetComponent<InputSystemUIInputModule>().point = InputActionReference.Create(input.actions.FindActionMap("In Level").FindAction("Point"));
+        eventSystem.GetComponent<InputSystemUIInputModule>().leftClick = InputActionReference.Create(input.actions.FindActionMap("In Level").FindAction("Select Lemming"));
+        isPaused = false;
+        Debug.Log("Leaving Pause Menu to Main Menu");
+
+        SceneManager.LoadScene("MainMenu");
+        yield return new WaitUntil(() => SceneManager.GetActiveScene().name == "MainMenu");
+        
+        MusicManager.PlayMusic(Resources.Load<AudioClip>("Sounds/Main Menu Theme"));
+        timeLimit = 600f;
+        currentScore = 0;
+        input.actions.FindActionMap("In Level").Disable();
+        input.actions.FindActionMap("In Menu").Enable();
+        Save();
+        ControlsMenuSetup();
+        SubscribeToInput();
+        inLevel = false;
+    }
+    
+    private IEnumerator LevelMenuLoader()
+    {
+        GameObject.Find("Levels Menu").GetComponent<Canvas>().enabled = true;
+        yield return null;
+        if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+            eventSystem.SetSelectedGameObject(GameObject.Find("Level 1 Button"));
+        else 
+            lastSelectedObject = "Level 1 Button";
+        inLevelMenu = true;
+    }
+    
+    private IEnumerator SettingsMenuLoader()
+    {
+        AudioManager.PlaySound(SoundType.UIClickIn);
+        GameObject.Find("Settings Menu").GetComponent<Canvas>().enabled = true;
+        yield return null;
+        if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+        {
+            eventSystem.SetSelectedGameObject(GameObject.Find("SFX Volume Slider"));
+            lastSelectedObject = "SFX Volume Slider";
+        }
+        else
+        {
+            lastSelectedObject = "SFX Volume Slider";
+            eventSystem.SetSelectedGameObject(null);
+        }
+        Debug.Log("Settings");
+        inSettingsMenu = true;
+    }
+
+    private IEnumerator PauseMenuLoader()
+    {
+        AudioManager.PlaySound(SoundType.UIPaused);
+        MusicManager.PauseMusic();
+
+        GameObject.Find("Pause Menu").GetComponent<Canvas>().enabled = true;
+        yield return null;
+        input.actions.FindActionMap("In Level").Disable();
+        input.actions.FindActionMap("In Menu").Enable();
+        eventSystem.GetComponent<InputSystemUIInputModule>().move = InputActionReference.Create(input.actions.FindActionMap("In Menu").FindAction("Navigate"));
+        eventSystem.GetComponent<InputSystemUIInputModule>().point = InputActionReference.Create(input.actions.FindActionMap("In Menu").FindAction("Point"));
+        eventSystem.GetComponent<InputSystemUIInputModule>().leftClick = InputActionReference.Create(input.actions.FindActionMap("In Menu").FindAction("Click"));
+        if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+        {
+            eventSystem.SetSelectedGameObject(GameObject.Find("Continue Button"));
+            lastSelectedObject = "Continue Button";
+
+        }
+        else
+        {
+            lastSelectedObject = "Continue Button";
+            eventSystem.SetSelectedGameObject(null);
+        }
+        isPaused = true;
+        Time.timeScale = 0;
+        //Debug.Log("Paused");
+    }
+    
+    private IEnumerator MoveHandler()
+    {
+        if (input.currentControlScheme == "Keyboard&Mouse" && !eventSystem.currentSelectedGameObject)
+        {
+            yield return new WaitForNextFrameUnit();
+            eventSystem.SetSelectedGameObject(GameObject.Find(lastSelectedObject));
+        }
+
+        if (input.currentControlScheme == "Gamepad" && !eventSystem.currentSelectedGameObject)
+        {
+            yield return new WaitForNextFrameUnit();
+            eventSystem.SetSelectedGameObject(GameObject.Find(lastSelectedObject));
+        }
+    }
+
+    private void ContinueHandler()
+    {
+        
+        if (inLevel && inSettingsMenu && !gameOver)
+        {
+            AudioManager.PlaySound(SoundType.UIClickOut);
+            GameObject.Find("Settings Menu").GetComponent<Canvas>().enabled = false;
+            if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+            {
+                eventSystem.SetSelectedGameObject(GameObject.Find("Settings Button"));
+                lastSelectedObject = "Settings Button";
+            }
+            else 
+                lastSelectedObject = "Settings Button";
+            inSettingsMenu = false;
+        }
+        
+        else if (inLevel && !inSettingsMenu && !gameOver)
+        {
+            AudioManager.PlaySound(SoundType.UIUnpaused);
+            MusicManager.ResumeMusic();
+            GameObject.Find("Pause Menu").GetComponent<Canvas>().enabled = false;
+            Time.timeScale = 1;
+            input.actions.FindActionMap("In Menu").Disable();
+            input.actions.FindActionMap("In Level").Enable();
+            eventSystem.GetComponent<InputSystemUIInputModule>().move = InputActionReference.Create(input.actions.FindActionMap("In Level").FindAction("Navigate"));
+            eventSystem.GetComponent<InputSystemUIInputModule>().point = InputActionReference.Create(input.actions.FindActionMap("In Level").FindAction("Point"));
+            eventSystem.GetComponent<InputSystemUIInputModule>().leftClick = InputActionReference.Create(input.actions.FindActionMap("In Level").FindAction("Select Lemming"));
+            isPaused = false;
+            if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+            {
+                eventSystem.SetSelectedGameObject(GameObject.Find("Floater Button"));
+                lastSelectedObject = "Floater Button";
+            }
+            else 
+                lastSelectedObject = "Floater Button";
+        }
+        
+        else if (inLevelMenu && !inLevel)
+        {
+            AudioManager.PlaySound(SoundType.UIClickOut);
+            GameObject.Find("Levels Menu").GetComponent<Canvas>().enabled = false;
+            inLevelMenu = false;
+            if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+            {
+                eventSystem.SetSelectedGameObject(GameObject.Find("Levels"));
+                lastSelectedObject = "Levels";
+            }
+            else
+            {
+                lastSelectedObject = "Levels";
+                eventSystem.SetSelectedGameObject(null);
+            }
+        }
+        
+        else if (!inLevel && inSettingsMenu)
+        {
+            AudioManager.PlaySound(SoundType.UIClickOut);
+            GameObject.Find("Settings Menu").GetComponent<Canvas>().enabled = false;
+            inSettingsMenu = false;
+            if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+            {
+                eventSystem.SetSelectedGameObject(GameObject.Find("Settings"));
+                lastSelectedObject = "Settings";
+            }
+            else
+            {
+                lastSelectedObject = "Settings";
+                eventSystem.SetSelectedGameObject(null);
+            }
+        }
+        else
+            Debug.Log("Redundant call");
+    }
+    
+    //Button inputs
+    public void Quit()
+    {
+        Application.Quit();
+    }
+    
+    public void LoadFirstLevel()
+    {
+        newGame = true;
+        if (File.Exists(Application.persistentDataPath + "/saveData.dat"))
+        {
+            File.Delete(Application.persistentDataPath + "/saveData.dat");
+            Debug.Log("Save file deleted.");
+        }
+        Save();
+        Load();
+        LoadLevel("Level 1");
+        AudioManager.PlaySound(SoundType.UINewGame);
+    }
+
+    public void LoadLatestLevel()
+    {
+        LoadLevel("Level " + (latestLevel + 1));
+        AudioManager.PlaySound(SoundType.UINewGame);
+    }
+
+    private void LoadCurrentLevel()
+    {
+        timeLimit = 600f;
+        StartCoroutine(LoadingCurrentLevel());
+    }
+
+    private IEnumerator LoadingCurrentLevel()
+    {
+        yield return null;
+        LoadLevel("Level " + (currentLevel + 1));
+    }
+
+    private void LoadNextLevel()
+    {
+        LoadLevel("Level " + (latestLevel + 1));
+    }
+
+    public void ToLevelMenu()
+    {
+        StartCoroutine(LevelMenuLoader());
+    }
+
+    public void ToSettingsMenu()
+    {
+        StartCoroutine(SettingsMenuLoader());
+    }
+
+    private void ToMainMenu()
+    {
+        StopAllCoroutines();
+        StartCoroutine(MainMenuLoader());
+    }
+    
+    
+    //Input actions
+    public void OnMove()
+    {
+        StartCoroutine(MoveHandler());
+    }
+    
+    public void OnPoint()
+    {
+        if (input.currentControlScheme == "Keyboard&Mouse" && eventSystem.currentSelectedGameObject != null)
+        {
+            lastSelectedObject = eventSystem.currentSelectedGameObject.name;
+            eventSystem.SetSelectedGameObject(null);
+            selectedWithKeyboard = false;
+        }
+    }
+    
+    public void OnClick(InputAction.CallbackContext context)
+    {
+        if (input.currentControlScheme == "Keyboard&Mouse" && eventSystem.currentSelectedGameObject != null && context.control.device is not Keyboard)
+        {
+            lastSelectedObject = eventSystem.currentSelectedGameObject.name;
+            eventSystem.SetSelectedGameObject(null);
+            selectedWithKeyboard = false;
+        }
+        else if (input.currentControlScheme == "Keyboard&Mouse" && eventSystem.currentSelectedGameObject != null && context.control.device is Keyboard)
+        {
+            selectedWithKeyboard = true;
+        } 
+    }
+    
+    public void OnPause(InputAction.CallbackContext context)
+    {
+        if (inLevel && context.performed)
+        {
+            StartCoroutine(PauseMenuLoader());
+        }
+    }
+    
+    public void OnContinue(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            ContinueHandler();
+        }
+    }
+    
+    public void ChangeVolume(float volume, bool isSfx)
+    {
+        if (isSfx)
+        {
+            SfxVolume = volume;
+            GameObject.Find("Audio Manager").GetComponent<AudioSource>().volume = volume;
+            return;
+        }
+    
+        MusicVolume = volume;
+        MusicManager.SetMusicVolume(MusicVolume);
+    }
+    
+    private void ControlsMenuSetup()
+    {
+        input.actions.FindActionMap("In Level").Disable();
+        input.actions.FindActionMap("In Menu").Enable();
+        if (File.Exists(Application.persistentDataPath + "/saveData.dat"))
+        {
+            GameObject.Find("Continue").GetComponent<Button>().interactable = true;
+        }
+        
+        
+        for (int i = 1; i < Levels.Count; i++)
+        {
+            if (!Levels[i].IsCompleted)
+            {
+                GameObject.Find("Level " + (i + 1) + " Button").GetComponent<Button>().interactable = false;
+                GameObject.Find("Level " + (i + 1) + " Panel").GetComponent<Image>().enabled = true;
+            }
+        }
+        
+        GameObject.Find("Level " + (latestLevel + 1) + " Button").GetComponent<Button>().interactable = true;
+        GameObject.Find("Level " + (latestLevel + 1) + " Panel").GetComponent<Image>().enabled = false;
+        
+        for (int i = 0; i < Levels.Count; i++)
+        {
+            if (!Levels[i].PerfectScore)
+            {
+                GameObject.Find("Level " + (i + 1) + " Star").GetComponent<Image>().enabled = false;
+                GameObject.Find("Levels Title").GetComponent<TextMeshProUGUI>().colorGradient = new VertexGradient(Color.white, Color.white, Color.white, Color.white);
+                GameObject.Find("Levels Title").GetComponent<TextMeshProUGUI>().color = Color.white;
+            }
+        }
+        
+        lastSelectedObject = "New Game";
+        timerRunning = false;
+    }
+
+    private void ControlsLevelSetup()
+    {
+        input.actions.FindActionMap("In Level").Enable();
+        lastSelectedObject = "Floater Button";
+        
+        if (input.currentControlScheme == "Keyboard&Mouse")
+        {
+            if (inLevel) 
+                GameObject.Find("CursorVisual").GetComponent<Image>().enabled = false;
+            
+            if (selectedWithKeyboard)
+                eventSystem.SetSelectedGameObject(GameObject.Find(lastSelectedObject));
+            else
+                eventSystem.SetSelectedGameObject(null);
+        }
+        
+        else
+        {
+            if (inLevel)
+                GameObject.Find("CursorVisual").GetComponent<Image>().enabled = true;
+            eventSystem.SetSelectedGameObject(GameObject.Find(lastSelectedObject));
+        }
+        timerRunning = true;
+    }
+
+    private void OnControlsChanged(PlayerInput pi)
+    { 
+        if (pi.currentControlScheme == "Keyboard&Mouse")
+        {
+            if (inLevel)
+                GameObject.Find("CursorVisual").GetComponent<Image>().enabled = false;
+            if (eventSystem.currentSelectedGameObject)
+                lastSelectedObject = eventSystem.currentSelectedGameObject.name;
+        }
+        else
+        {
+            if (inLevel)
+                GameObject.Find("CursorVisual").GetComponent<Image>().enabled = true;
+        }
+        StartCoroutine(MoveHandler());
+    }
+
+    private void SubscribeToInput()
+    {
+        input = GetComponent<PlayerInput>();
+        eventSystem = EventSystem.current;
+        input.controlsChangedEvent.RemoveListener(OnControlsChanged);
+        input.controlsChangedEvent.AddListener(OnControlsChanged);
+        
+        if (inLevel)
+        {
+            var continueObj = GameObject.Find("Continue Button");
+            if (continueObj)
+            {
+                var continueButton = continueObj.GetComponent<Button>();
+                continueButton.onClick.RemoveListener(ContinueHandler);
+                continueButton.onClick.AddListener(ContinueHandler);
+            }
+            
+            var settingsObj = GameObject.Find("Settings Button");
+            if (settingsObj)
+            {
+                var settingsButton = settingsObj.GetComponent<Button>();
+                settingsButton.onClick.RemoveListener(ToSettingsMenu);
+                settingsButton.onClick.AddListener(ToSettingsMenu);
+            }
+            
+            var exitObj = GameObject.Find("Exit Button");
+            if (exitObj)
+            {
+                var exitButton = exitObj.GetComponent<Button>();
+                exitButton.onClick.RemoveListener(ToMainMenu);
+                exitButton.onClick.AddListener(ToMainMenu); 
+            }
+            
+            var victoryExitObj = GameObject.Find("Victory Exit Button");
+            if (victoryExitObj)
+            {
+                var victoryExitButton = victoryExitObj.GetComponent<Button>();
+                victoryExitButton.onClick.RemoveListener(ToMainMenu);
+                victoryExitButton.onClick.AddListener(ToMainMenu);
+            }
+            
+            var defeatExitObj = GameObject.Find("Defeat Exit Button");
+            if (defeatExitObj)
+            {
+                var defeatExitButton = defeatExitObj.GetComponent<Button>();
+                defeatExitButton.onClick.RemoveListener(ToMainMenu);
+                defeatExitButton.onClick.AddListener(ToMainMenu);
+            }
+            
+            var nextLevelObj = GameObject.Find("Next Level Button");
+            if (nextLevelObj)
+            {
+                var nextLevelButton = nextLevelObj.GetComponent<Button>();
+                nextLevelButton.onClick.RemoveListener(LoadNextLevel);
+                nextLevelButton.onClick.AddListener(LoadNextLevel);
+            }
+            
+            var retryObj = GameObject.Find("Retry Button");
+            if (retryObj)
+            {
+                var retryButton = retryObj.GetComponent<Button>();
+                retryButton.onClick.RemoveListener(LoadCurrentLevel);
+                retryButton.onClick.AddListener(LoadCurrentLevel);
+            }
+            
+            var retryObj2 = GameObject.Find("Retry Button 2");
+            if (retryObj2)
+            {
+                var retryButton = retryObj2.GetComponent<Button>();
+                retryButton.onClick.RemoveListener(LoadCurrentLevel);
+                retryButton.onClick.AddListener(LoadCurrentLevel);
+            }
+        }
+    }
+    
+    
+    //In level
+    public void ScoreCounter() 
+    {
+        currentScore++;
+        if (currentScore >= Levels[currentLevel].RequiredScore)
+            Win();
+        scoreText.text = "Aliens required: " + currentScore + " / " + Levels[currentLevel].RequiredScore;
+    }
+
+    private void Win()
+    {
+        if (won) return;
+        Debug.Log("Win");
+        AudioManager.PlaySound(SoundType.ReachScore);
+        won = true;
+        timeText.color = Color.darkGreen;
+        scoreText.color = Color.darkGreen;
+    }
+
+    private IEnumerator LevelEnd() 
+    { 
+        isPaused = true;                                                                                                                                           
+        Time.timeScale = 0;
+        gameOver = true;
+        MusicManager.StopMusic();
+        input.actions.FindActionMap("In Level").Disable();                                                                                                       
+        input.actions.FindActionMap("In Menu").Enable();                                                                                                         
+        eventSystem.GetComponent<InputSystemUIInputModule>().move = InputActionReference.Create(input.actions.FindActionMap("In Menu").FindAction("Navigate"));  
+        eventSystem.GetComponent<InputSystemUIInputModule>().point = InputActionReference.Create(input.actions.FindActionMap("In Menu").FindAction("Point"));    
+        eventSystem.GetComponent<InputSystemUIInputModule>().leftClick = InputActionReference.Create(input.actions.FindActionMap("In Menu").FindAction("Click"));
+        yield return null;                                                                                                                                                          
+        float percent = (float)currentScore / Levels[currentLevel].LemmingsAmount * 100f;
+        
+        if (won)
+        {
+            latestLevel++;
+            Levels[currentLevel].IsCompleted = true;
+            won = false;
+            Save();
+            GameObject.Find("Victory Score Text").GetComponent<TextMeshProUGUI>().text = "Aliens saved: " + percent + "%";
+            GameObject.Find("Victory Canvas").GetComponent<Canvas>().enabled = true;    
+            if (currentScore == Levels[currentLevel].LemmingsAmount)
+            {
+                GameObject.Find("Victory Score Text").GetComponent<TextMeshProUGUI>().text += "\nPerfect Score!";
+                Levels[currentLevel].PerfectScore = true;
+            }
+            
+            if (currentLevel == 2)
+            {
+                AudioManager.PlaySound(SoundType.GameWin);
+
+                var nextLevelObj = GameObject.Find("Next Level Button");
+                if (nextLevelObj)
+                {
+                    nextLevelObj.GetComponent<Button>().interactable = false;
+                    GameObject.Find("Victory Exit Button").GetComponent<Button>().interactable = false;
+                    yield return new WaitForSecondsRealtime(8f);
+                    nextLevelObj.GetComponentInChildren<TextMeshProUGUI>().text = "Continue";
+                    var nextLevelButton = nextLevelObj.GetComponent<Button>();
+                    nextLevelButton.onClick.RemoveListener(LoadNextLevel);
+                    nextLevelButton.onClick.AddListener(BeginEndCutscene);
+                    nextLevelObj.GetComponent<Button>().interactable = true;
+                    GameObject.Find("Victory Exit Button").GetComponent<Button>().interactable = true;
+                }
+                
+                GameObject.Find("Victory Canvas").GetComponent<Canvas>().enabled = true;    
+                if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")                      
+                {                                                                                         
+                    eventSystem.SetSelectedGameObject(GameObject.Find("Victory Exit Button"));                
+                    lastSelectedObject = "Victory Exit Button";                                               
+                }                                                                                         
+                else                                                                                      
+                {                                                                                         
+                    lastSelectedObject = "Victory Exit Button";                                               
+                    eventSystem.SetSelectedGameObject(null);                                              
+                }
+                yield break;
+            }
+            
+            AudioManager.PlaySound(SoundType.LevelWin);
+
+            if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")                      
+            {                                                                                         
+                eventSystem.SetSelectedGameObject(GameObject.Find("Next Level Button"));                
+                lastSelectedObject = "Next Level Button";                                               
+            }                                                                                         
+            else                                                                                      
+            {                                                                                         
+                lastSelectedObject = "Next Level Button";                                               
+                eventSystem.SetSelectedGameObject(null);                                              
+            }  
+            
+            yield return new WaitForSecondsRealtime(5.5f);
+            MusicManager.PlayMusic(Resources.Load<AudioClip>("Sounds/Victory Theme"));
+        }
+        
+        else
+        {
+            AudioManager.PlaySound(SoundType.LevelFail);
+            GameObject.Find("Defeat Score Text").GetComponent<TextMeshProUGUI>().text = "Aliens saved: " + percent + "%";
+            GameObject.Find("Defeat Canvas").GetComponent<Canvas>().enabled = true;      
+            
+            if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")                      
+            {                                                                                         
+                eventSystem.SetSelectedGameObject(GameObject.Find("Retry Button"));                
+                lastSelectedObject = "Retry Button";                                               
+            }                           
+            
+            else                                                                                      
+            {                                                                                         
+                lastSelectedObject = "Retry Button";                                               
+                eventSystem.SetSelectedGameObject(null);                                              
+            }
+
+            yield return new WaitForSecondsRealtime(3f);
+            MusicManager.PlayMusic(Resources.Load<AudioClip>("Sounds/Defeat Theme"));
+            Debug.Log("Playing defeat music");
+        }
+    }
+
+    private void Timer()
+    {
+        if (timeLimit <= 0f)
+        {
+            timeLimit = 0f;
+            timerRunning = false;
+            return;
+        }
+        timeLimit -= Time.deltaTime;
+        timeText.text = "Timer: " + timeLimit.ToString("F0");
+    }
+    
+    private IEnumerator StartCutscene()
+    {
+        MusicManager.PlayMusic(Resources.Load<AudioClip>("Sounds/Level Start Music"));
+        float volume = MusicVolume;
+        yield return new WaitForSeconds(2f);
+        Debug.Log("Cutscene started");
+
+        string cutsceneText = "On an ordinary summer day...";
+        TextMeshProUGUI cutsceneTextField = GameObject.Find("Cutscene Text").GetComponent<TextMeshProUGUI>();
+        Color cutsceneTextFieldColor = cutsceneTextField.color;
+        Color cutscenePanel = GameObject.Find("Cutscene Panel").GetComponent<Image>().color;
+        Color visibleColor = cutsceneTextFieldColor;
+        cutsceneTextField.maxVisibleCharacters = 0;
+        yield return new WaitForNextFrameUnit();
+        cutsceneTextField.text = cutsceneText;
+        
+        foreach (char unused in cutsceneTextField.text)
+        {
+            cutsceneTextField.maxVisibleCharacters++;
+            cutsceneTextField.characterSpacing += 0.1f;
+            yield return new WaitForSeconds(0.05f);
+        }
+        for (int i = 0; i < 70; i++)
+        {
+            cutsceneTextField.characterSpacing += 0.1f;
+            yield return new WaitForSeconds(0.05f);
+            if (i > 20)
+            {
+                cutsceneTextFieldColor.a -= 0.05f;
+                GameObject.Find("Cutscene Text").GetComponent<TextMeshProUGUI>().color = cutsceneTextFieldColor; 
+            }
+        }
+        
+        cutsceneTextField.maxVisibleCharacters = 0;
+        GameObject.Find("Cutscene Text").GetComponent<TextMeshProUGUI>().color = visibleColor;
+        cutsceneTextFieldColor = visibleColor;
+        cutsceneText = "An alien ship crashes";
+        cutsceneTextField.text = cutsceneText;
+        
+        foreach (var unused in cutsceneTextField.text)
+        {
+            cutsceneTextField.maxVisibleCharacters++;
+            cutsceneTextField.characterSpacing += 0.1f;
+            yield return new WaitForSeconds(0.05f);
+        }
+        for (var i = 0; i < 70; i++)
+        {
+            cutsceneTextField.characterSpacing += 0.1f;
+            yield return new WaitForSeconds(0.05f);
+            if (i > 20)
+            {
+                cutsceneTextFieldColor.a -= 0.05f;
+                GameObject.Find("Cutscene Text").GetComponent<TextMeshProUGUI>().color = cutsceneTextFieldColor; 
+            }
+        }
+
+        for (var i = 0; i < 50; i++)
+        {
+            cutscenePanel.a -= 0.02f;
+            GameObject.Find("Cutscene Panel").GetComponent<Image>().color = cutscenePanel; 
+            yield return new WaitForSeconds(0.05f);
+            MusicManager.SetMusicVolume(volume -= 0.02f);
+        }
+        GameObject.Find("Cutscene Canvas").GetComponent<Canvas>().enabled = false;
+        Debug.Log("Cutscene finished");
+    }
+
+    private IEnumerator EndCutscene()
+    {
+        GameObject.Find("Cutscene Canvas").GetComponent<Canvas>().enabled = true;
+        MusicManager.PlayMusic(Resources.Load<AudioClip>("Sounds/Level End Music"));
+        yield return new WaitForSeconds(2f);
+        Debug.Log("Cutscene started");
+        
+        string cutsceneText = "After a journey across the earth,";
+        TextMeshProUGUI cutsceneTextField = GameObject.Find("Cutscene Text").GetComponent<TextMeshProUGUI>();
+        Color cutsceneTextFieldColor = cutsceneTextField.color;
+        Color visibleColor = cutsceneTextFieldColor;
+        cutsceneTextField.maxVisibleCharacters = 0;
+        yield return new WaitForNextFrameUnit();
+        cutsceneTextField.text = cutsceneText;
+        Color logoColor = GameObject.Find("Cutscene Logo").GetComponent<Image>().color;
+        
+        foreach (char unused in cutsceneTextField.text)
+        {
+            cutsceneTextField.maxVisibleCharacters++;
+            cutsceneTextField.characterSpacing += 0.1f;
+            yield return new WaitForSeconds(0.05f);
+        }
+        for (int i = 0; i < 70; i++)
+        {
+            cutsceneTextField.characterSpacing += 0.1f;
+            yield return new WaitForSeconds(0.05f);
+            if (i > 20)
+            {
+                cutsceneTextFieldColor.a -= 0.05f;
+                GameObject.Find("Cutscene Text").GetComponent<TextMeshProUGUI>().color = cutsceneTextFieldColor; 
+            }
+        }
+        
+        cutsceneTextField.maxVisibleCharacters = 0;
+        GameObject.Find("Cutscene Text").GetComponent<TextMeshProUGUI>().color = visibleColor;
+        cutsceneTextFieldColor = visibleColor;
+        cutsceneText = "Where friends were lost and found.";
+        cutsceneTextField.text = cutsceneText;
+        
+        foreach (var unused in cutsceneTextField.text)
+        {
+            cutsceneTextField.maxVisibleCharacters++;
+            cutsceneTextField.characterSpacing += 0.1f;
+            yield return new WaitForSeconds(0.05f);
+        }
+        for (var i = 0; i < 70; i++)
+        {
+            cutsceneTextField.characterSpacing += 0.1f;
+            yield return new WaitForSeconds(0.05f);
+            if (i > 20)
+            {
+                cutsceneTextFieldColor.a -= 0.05f;
+                GameObject.Find("Cutscene Text").GetComponent<TextMeshProUGUI>().color = cutsceneTextFieldColor; 
+            }
+        }
+        
+        cutsceneTextField.maxVisibleCharacters = 0;
+        GameObject.Find("Cutscene Text").GetComponent<TextMeshProUGUI>().color = visibleColor;
+        cutsceneTextFieldColor = visibleColor;
+        cutsceneText = "The Aliens were finally able to return home safely.";
+        cutsceneTextField.text = cutsceneText;
+        
+        foreach (var unused in cutsceneTextField.text)
+        {
+            cutsceneTextField.maxVisibleCharacters++;
+            cutsceneTextField.characterSpacing += 0.1f;
+            yield return new WaitForSeconds(0.05f);
+        }
+        for (var i = 0; i < 70; i++)
+        {
+            cutsceneTextField.characterSpacing += 0.1f;
+            yield return new WaitForSeconds(0.05f);
+            if (i > 20)
+            {
+                cutsceneTextFieldColor.a -= 0.05f;
+                GameObject.Find("Cutscene Text").GetComponent<TextMeshProUGUI>().color = cutsceneTextFieldColor; 
+            }
+        }
+
+        cutsceneTextField.maxVisibleCharacters = 0;
+        GameObject.Find("Cutscene Text").GetComponent<TextMeshProUGUI>().color = visibleColor;
+        cutsceneText = "Thank you for playing.";
+        cutsceneTextField.text = cutsceneText;
+        
+        foreach (var unused in cutsceneTextField.text)
+        {
+            cutsceneTextField.maxVisibleCharacters++;
+            cutsceneTextField.characterSpacing += 0.1f;
+            yield return new WaitForSeconds(0.05f);
+        }
+        
+        for (var i = 0; i < 70; i++)
+        {
+            if (i < 20)
+                cutsceneTextField.characterSpacing += 0.1f;
+            yield return new WaitForSeconds(0.05f);
+            if (i <= 20) continue;
+            cutsceneTextField.transform.position -= new Vector3(0f, 6.5f, 0f);
+            GameObject.Find("Cutscene Text").transform.position = cutsceneTextField.transform.position;
+        }
+        
+        for (var i = 0; i < 100; i++)
+        {
+            logoColor.a += 0.02f;
+            GameObject.Find("Cutscene Logo").GetComponent<Image>().color = logoColor;
+            yield return new WaitForSeconds(0.05f);
+        }
+
+        yield return new WaitForSeconds(50f);
+        GameObject.Find("Cutscene Canvas").GetComponent<Canvas>().enabled = false;
+        Debug.Log("Cutscene finished");
+    }
+
+    private void BeginEndCutscene()
+    {
+        Save();
+        GameObject.Find("Victory Canvas").GetComponent<Canvas>().enabled = false;    
+        StartCoroutine(EndCutscene());
+        var nextLevelObj = GameObject.Find("Next Level Button");
+        var nextLevelButton = nextLevelObj.GetComponent<Button>();
+        nextLevelButton.onClick.RemoveListener(BeginEndCutscene);
+        Time.timeScale = 1;
+    }
+    
+    public void ChangeLemming(GameObject lemming, Vector2 lemmingPosition, string lemmingType)
+    {
+        var oldLemmingMoveDir = lemming.GetComponent<LemmingBase>().moveDir; //get old movedir and apply to new one
+        var oldLemmingLastDir = lemming.GetComponent<LemmingBase>().lastDir;
+
+        oldLemmingMoveDir = oldLemmingMoveDir switch
+        {
+            < -1 => -1,
+            > 1 => 1,
+            _ => oldLemmingMoveDir
+        };
+
+        oldLemmingLastDir = oldLemmingLastDir switch
+        {
+            < -1 => -1,
+            > 1 => 1,
+            _ => oldLemmingLastDir
+        };
+
+        Destroy(lemming);
+        if (lemmingType == "Kill") return;
+        
+        GameObject newLemming = Instantiate(Resources.Load("Prefabs/" + lemmingType), lemmingPosition, Quaternion.identity) as GameObject;
+        newLemming.GetComponent<LemmingBase>().moveDir = oldLemmingMoveDir;
+        newLemming.GetComponent<LemmingBase>().lastDir = oldLemmingLastDir;
+    }
+
+    
+    //Save & Load system
+    private void Save()
+    {
+        BinaryFormatter bf = new BinaryFormatter();
+        FileStream file = File.Create(Application.persistentDataPath + "/saveData.dat");
+        
+        SaveData data = new SaveData
+        {
+            latestLevel = Math.Max(currentLevel, latestLevel),
+            musicVolume = MusicVolume,
+            sfxVolume = SfxVolume,
+            levelSaves = new List<LevelSaveInfo>()
+        };
+
+        foreach (var lvl in Levels)
+        {
+            data.levelSaves.Add(new LevelSaveInfo
+            {
+                levelName = lvl.LevelName,
+                isCompleted = lvl.IsCompleted,
+                perfectScore = lvl.PerfectScore,
+                firstTimeInLevel = lvl.FirstTimeInLevel
+            });
+        }
+        
+        bf.Serialize(file, data);
+        file.Close();
+        Debug.Log("Saved");
+    }
+
+    private void Load()
+    {
+        if (File.Exists(Application.persistentDataPath + "/saveData.dat"))
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            FileStream file = File.Open(Application.persistentDataPath+"/saveData.dat", FileMode.Open);
+            SaveData data = (SaveData)bf.Deserialize(file);
+            file.Close();
+            latestLevel = data.latestLevel;
+            MusicVolume = data.musicVolume;
+            SfxVolume = data.sfxVolume;
+            foreach (var lvlData in data.levelSaves)
+            {
+                var level = Levels.Find(lvl => lvl.LevelName == lvlData.levelName);
+                if (level != null)
+                {
+                    level.IsCompleted = lvlData.isCompleted;
+                    level.PerfectScore = lvlData.perfectScore;
+                    level.FirstTimeInLevel = lvlData.firstTimeInLevel;
+                }
+            }
+            Debug.Log("Loaded");
+        }
+    }
+
+    [Serializable]
+    class LevelSaveInfo
+    {
+        public string levelName;
+        public bool isCompleted;
+        public bool perfectScore;
+        public bool firstTimeInLevel;
+    }
+
+    [Serializable]
+    class SaveData
+    {
+        public List<LevelSaveInfo> levelSaves;
+        public int latestLevel;
+        public float musicVolume;
+        public float sfxVolume;
+    }
+    
+    public class LevelData
+    {
+        public string LevelName;
+        public bool IsCompleted;
+        public bool PerfectScore;
+        public string[] Assets;
+        public int RequiredScore;
+        public Vector3 SpawnPoint;
+        public Vector3 GoalPoint;
+        public int LemmingsAmount;
+        public string[] Unlocks;
+        public bool FirstTimeInLevel;
+    }
+}
