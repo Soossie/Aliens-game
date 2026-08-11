@@ -516,6 +516,11 @@ public class GameManager : MonoBehaviour
         StartCoroutine(LevelMenuLoader());
     }
 
+    public void FromLevelMenu()
+    {
+        ContinueHandler();
+    }
+
     public void ToSettingsMenu()
     {
         StartCoroutine(SettingsMenuLoader());
@@ -601,7 +606,7 @@ public class GameManager : MonoBehaviour
         {
             if (!Levels[i].IsCompleted)
             {
-                GameObject.Find("Level " + (i + 1) + " Button").GetComponent<Button>().interactable = false;
+                GameObject.Find("Level " + (i + 1) + " Button").GetComponent<Button>().enabled = false;
                 GameObject.Find("Level " + (i + 1) + " Panel").GetComponent<Image>().enabled = true;
             }
         }
@@ -615,7 +620,7 @@ public class GameManager : MonoBehaviour
             {
                 GameObject.Find("Level " + (i + 1) + " Star").GetComponent<Image>().enabled = false;
                 GameObject.Find("Levels Title").GetComponent<TextMeshProUGUI>().colorGradient = new VertexGradient(Color.white, Color.white, Color.white, Color.white);
-                GameObject.Find("Levels Title").GetComponent<TextMeshProUGUI>().color = Color.white;
+                GameObject.Find("Levels Title").GetComponent<TextMeshProUGUI>().color = Color.lightGreen;
             }
         }
         
@@ -1143,7 +1148,7 @@ public class GameManager : MonoBehaviour
                     level.FirstTimeInLevel = lvlData.firstTimeInLevel;
                 }
             }
-            Debug.Log("Loaded");
+            //Debug.Log("Loaded");
         }
     }
 

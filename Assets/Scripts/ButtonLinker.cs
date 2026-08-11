@@ -24,6 +24,11 @@ public class ButtonLinker : MonoBehaviour
     {
         gameManager.ToLevelMenu();
     }
+
+    public void FromLevelMenu()
+    {
+        gameManager.FromLevelMenu();
+    }
     
     public void ToSettingsMenu()
     {
