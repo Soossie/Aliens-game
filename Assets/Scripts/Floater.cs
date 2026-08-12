@@ -10,13 +10,13 @@ public class Floater : LemmingBase
         {
             SelfTimeScale = 1;
             moveDir = lastDir;
-            animator.SetBool(Falling, false);
+            Animator.SetBool(Falling, false);
             return;
         }
 
         SelfTimeScale = 2;
-        animator.SetBool(Falling, true);
-        animator.SetBool(WalkRight, false);
-        transform.position = targetPos + new Vector2(0, -1f / Ppu); 
+        Animator.SetBool(Falling, true);
+        Animator.SetBool(WalkRight, false);
+        transform.position = TargetPos + new Vector2(0, -1f / Ppu); 
     }
 }

@@ -23,9 +23,9 @@ public class Climber : LemmingBase
 
     private void Climb()
     {
-        animator.SetBool(Climbing, true);
-        animator.SetBool(WalkRight, false);
-        animator.SetBool(Falling, false);
+        Animator.SetBool(Climbing, true);
+        Animator.SetBool(WalkRight, false);
+        Animator.SetBool(Falling, false);
 
         if (moveDir != 2 && moveDir != -2)
         {
@@ -46,12 +46,12 @@ public class Climber : LemmingBase
                 else
                 {
                     SelfTimeScale = 1;
-                    animator.SetBool(Climbing, false);
+                    Animator.SetBool(Climbing, false);
                     if (!TerrainCollision.IsWalkable(RightPos + new Vector2(-1f / Ppu, 15f / Ppu)))
                     {
                         transform.position = (Vector2)transform.position + new Vector2(1f / Ppu, 1f / Ppu);
                         moveDir = lastDir;
-                        animator.SetBool(Climbing, false);
+                        Animator.SetBool(Climbing, false);
                     }
                     else
                     {
@@ -70,7 +70,7 @@ public class Climber : LemmingBase
                 else
                 {
                     SelfTimeScale = 1;
-                    animator.SetBool(Climbing, false);
+                    Animator.SetBool(Climbing, false);
                     if (!TerrainCollision.IsWalkable(LeftPos + new Vector2(1f / Ppu, 15f / Ppu)))
                     {
                         transform.position = (Vector2)transform.position + new Vector2(-1f / Ppu, 1f / Ppu);

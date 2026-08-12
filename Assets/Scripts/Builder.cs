@@ -18,7 +18,7 @@ public class Builder : LemmingBase
         base.HandleMovement();
         if (backToNormal > 3)
         {
-            animator.SetBool(Building, false);
+            Animator.SetBool(Building, false);
             return;
         }
         if (moveDir is 2 or -2)
@@ -35,16 +35,16 @@ public class Builder : LemmingBase
         }
         else
         {
-            animator.SetBool(Building, false);
+            Animator.SetBool(Building, false);
             moveDir = fallbackDir;
         }
     }
 
     void Build()
     {
-        animator.SetBool(Building, true);
-        animator.SetBool(WalkRight, false);
-        animator.SetBool(Falling, false);
+        Animator.SetBool(Building, true);
+        Animator.SetBool(WalkRight, false);
+        Animator.SetBool(Falling, false);
         if (tiles == 0)
         {
             // after building is normal lemming

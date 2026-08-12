@@ -1,10 +1,12 @@
 using System.Collections;
+using UnityEditor.Animations;
 using UnityEngine;
 
 public abstract class LemmingBase : MonoBehaviour, ILemming
 {
     private SpriteRenderer spriteRenderer;
-    protected Animator animator;
+    protected Animator Animator;
+    public bool highlighted;
 
     private GameManager gameManager;
     protected TerrainCollision TerrainCollision;
@@ -14,7 +16,7 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
     public int lastDir;
     protected float Ppu;
     private int currentLevel;
-    protected Vector2 targetPos;
+    protected Vector2 TargetPos;
     protected Vector2 LeftPos, RightPos, BelowPos;
     protected int FallHeight;
 
@@ -31,7 +33,7 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
     {
         AudioManager.PlaySound(SoundType.SpawnLemming, transform.position);
         spriteRenderer = GetComponent<SpriteRenderer>();
-        animator = GetComponent<Animator>();
+        Animator = GetComponent<Animator>();
         TerrainCollision = GameObject.Find("Runtime Bitmap").GetComponent<TerrainCollision>();
         gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
         Ppu = spriteRenderer.sprite.pixelsPerUnit;
@@ -51,7 +53,7 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
             return;
         selfTime = 0;
         
-        targetPos = (Vector2)transform.position + new Vector2(moveDir, 0) * 1f / Ppu;
+        TargetPos = (Vector2)transform.position + new Vector2(moveDir, 0) * 1f / Ppu;
         LeftPos = transform.GetChild(0).transform.position;
         RightPos = transform.GetChild(1).transform.position;
         BelowPos = transform.GetChild(2).transform.position;
@@ -76,20 +78,20 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
         {
             case 1:
                 MoveRight();
-                animator.SetBool(WalkRight, true);
-                animator.SetBool(Falling, false);
+                Animator.SetBool(WalkRight, true);
+                Animator.SetBool(Falling, false);
                 time = 0.05f;
                 break;
             case -1:
                 MoveLeft();
-                animator.SetBool(WalkRight, true);
-                animator.SetBool(Falling, false);
+                Animator.SetBool(WalkRight, true);
+                Animator.SetBool(Falling, false);
                 time = 0.05f;
                 break;
             case 0:
                 MoveDown();
-                animator.SetBool(WalkRight, false);
-                animator.SetBool(Falling, true);
+                Animator.SetBool(WalkRight, false);
+                Animator.SetBool(Falling, true);
                 time = 0.05f;
                 break;
         }
@@ -115,20 +117,20 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
             && !TerrainCollision.IsWalkable(RightPos) 
             && TerrainCollision.IsWalkable(LeftPos + new Vector2(1f / Ppu, -1f / Ppu)) 
             && TerrainCollision.IsWalkable(LeftPos + new Vector2(2f / Ppu, -2f / Ppu))) 
-            transform.position = targetPos + new Vector2(0, -1f / Ppu);
+            transform.position = TargetPos + new Vector2(0, -1f / Ppu);
         
             // Check if can move right
         else if (TerrainCollision.IsWalkable(RightPos + new Vector2(0, -1f / Ppu))
                  && !TerrainCollision.IsWalkable(RightPos))
-        transform.position = targetPos;
+        transform.position = TargetPos;
         
             // Check if can move right from left check
         else if (TerrainCollision.IsWalkable(LeftPos + new Vector2(1f / Ppu, -1f / Ppu)) && !TerrainCollision.IsWalkable(RightPos))
-            transform.position = targetPos;
+            transform.position = TargetPos;
         
             // Check if slope at right
         else if (TerrainCollision.IsWalkable(RightPos) && !TerrainCollision.IsWalkable(RightPos + new Vector2(0, 1f / Ppu)) && TerrainCollision.IsWalkable(RightPos + new Vector2(-1f / Ppu, -1f / Ppu)))
-            transform.position = targetPos + new Vector2(0, 1f / Ppu);
+            transform.position = TargetPos + new Vector2(0, 1f / Ppu);
         
         else if (!TerrainCollision.IsWalkable(BelowPos) 
                  && !TerrainCollision.IsWalkable(LeftPos + new Vector2(1f / Ppu, -1f / Ppu)) && !TerrainCollision.IsWalkable(RightPos + new Vector2(-1f / Ppu, -1f / Ppu)))
@@ -138,7 +140,7 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
         }
         
         else if (!TerrainCollision.IsWalkable(RightPos - new Vector2(0, -1f / Ppu)))
-            transform.position = targetPos + new Vector2(0, -1f / Ppu);
+            transform.position = TargetPos + new Vector2(0, -1f / Ppu);
         
         else HandleBlocked(-1);
     }
@@ -154,19 +156,19 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
 
             //check if can go down left
         if (!TerrainCollision.IsWalkable(RightPos + new Vector2(-2f / Ppu, -1f / Ppu)) && !TerrainCollision.IsWalkable(LeftPos) && TerrainCollision.IsWalkable(RightPos + new Vector2(-1f / Ppu, -1f / Ppu)) && TerrainCollision.IsWalkable(RightPos + new Vector2(-2f / Ppu, -2f / Ppu)))
-            transform.position = targetPos + new Vector2(0, -1f / Ppu);
+            transform.position = TargetPos + new Vector2(0, -1f / Ppu);
         
         else if (TerrainCollision.IsWalkable(LeftPos + new Vector2(0, -1f / Ppu)) && !TerrainCollision.IsWalkable(LeftPos))
-            transform.position = targetPos; 
+            transform.position = TargetPos; 
             
             //move left from right check
         else if (TerrainCollision.IsWalkable(RightPos + new Vector2(-1f / Ppu, -1f / Ppu)) && !TerrainCollision.IsWalkable(LeftPos))
-            transform.position = targetPos;
+            transform.position = TargetPos;
         
             //check if slope at left
         else if (TerrainCollision.IsWalkable(LeftPos) &&
                  !TerrainCollision.IsWalkable(LeftPos + new Vector2(0, 1f / Ppu)) && TerrainCollision.IsWalkable(LeftPos + new Vector2(1f / Ppu, -1f / Ppu))) 
-            transform.position = targetPos + new Vector2(0, 1f / Ppu);
+            transform.position = TargetPos + new Vector2(0, 1f / Ppu);
         
         else if (!TerrainCollision.IsWalkable(BelowPos) 
                  && !TerrainCollision.IsWalkable(LeftPos + new Vector2(1f / Ppu, -1f / Ppu)) && !TerrainCollision.IsWalkable(RightPos + new Vector2(-1f / Ppu, -1f / Ppu)))
@@ -176,7 +178,7 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
         }
         
         else if (!TerrainCollision.IsWalkable(LeftPos - new Vector2(0, -1f / Ppu)))
-            transform.position = targetPos + new Vector2(0, -1f / Ppu);
+            transform.position = TargetPos + new Vector2(0, -1f / Ppu);
         
         else HandleBlocked(1);
     }
@@ -188,14 +190,14 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
             TerrainCollision.IsWalkable(RightPos + new Vector2(-1f / Ppu, -1f / Ppu)))
         {
             moveDir = lastDir;
-            animator.SetBool(Falling, false);
+            Animator.SetBool(Falling, false);
             if (FallHeight < 80)
                 FallHeight = 0;
             else
                 Die();
             return;
         }
-        transform.position = targetPos + new Vector2(0, -1f / Ppu);
+        transform.position = TargetPos + new Vector2(0, -1f / Ppu);
         FallHeight++;
     }
 

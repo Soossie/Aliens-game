@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
@@ -20,8 +21,8 @@ public class MouseControl : MonoBehaviour
     private EventSystem eventSystem;
     private Image cursorImage;
     private string selectedRole;
-    private GameObject selectedLemming;
-    private Vector2 selectedLemmingPosition;
+    private GameObject selectedAlien;
+    private Vector2 selectedAlienPosition;
     [SerializeField] private Texture2D highlightedCursorTexture;
     
     private void Awake()
@@ -54,7 +55,8 @@ public class MouseControl : MonoBehaviour
 
     private void OnClickPerformed(InputAction.CallbackContext ctx)
     {
-        OnClick();
+        if (ctx.ReadValue<float>() > 0.5f)
+            OnClick();
     }
     
     private void OnNavigationPerformed(InputAction.CallbackContext ctx)
@@ -89,18 +91,22 @@ public class MouseControl : MonoBehaviour
     
     public void OnClick()
     {
-        if (selectedLemming != null && selectedRole != null)
+        if (selectedAlien != null && selectedRole != null)
         {
             if (selectedRole == "Kill")
-                selectedLemming.GetComponent<LemmingBase>().Die();
+                selectedAlien.GetComponent<LemmingBase>().Die();
             else
-                gameManager.ChangeLemming(selectedLemming, selectedLemmingPosition, selectedRole );
+            {
+                gameManager.ChangeLemming(selectedAlien, selectedAlienPosition, selectedRole);
+            }
             AudioManager.PlaySound(SoundType.SelectLemming);
         }
     }
     
     private void LemmingsCursor()
     {
+        GameObject hoveredAlien = null;
+        
         if (playerInput.currentControlScheme == "Keyboard&Mouse")
         {
             Vector2 screen = Mouse.current.position.ReadValue();
@@ -109,21 +115,27 @@ public class MouseControl : MonoBehaviour
             Vector3 worldPos =
                 Camera.main.ScreenToWorldPoint(new Vector3(screen.x, screen.y, Camera.main.nearClipPlane));
 
-            for (int i = 0; i < GameObject.FindGameObjectsWithTag("Lemming").Length; i++)
+
+            foreach (GameObject alien in GameObject.FindGameObjectsWithTag("Lemming"))
             {
-                GameObject lemming = GameObject.FindGameObjectsWithTag("Lemming")[i];
-                if (Vector2.Distance(worldPos, lemming.transform.position) < 0.4f)
+                if (Mathf.Abs(worldPos.x - alien.transform.position.x) < 0.12f
+                    && worldPos.y - alien.transform.position.y < 0.55f 
+                    && worldPos.y - alien.transform.position.y > -0.03f) 
                 {
-                    Cursor.SetCursor(highlightedCursorTexture, Vector2.zero, CursorMode.Auto);
-                    //Debug.Log(lemming.name + " Neaby!!!");
-                    selectedLemming = GameObject.FindGameObjectsWithTag("Lemming")[i];
-                    selectedLemmingPosition = selectedLemming.transform.position;
+                    hoveredAlien = alien;
                     break;
                 }
+            }
+
+            if (hoveredAlien != selectedAlien)
+            {
+                if (selectedAlien != null)
+                    selectedAlien.GetComponent<LemmingBase>().highlighted = false;
                 
-                Cursor.SetCursor(gameManager.cursorTexture, Vector2.zero, CursorMode.Auto);
-                //Debug.Log("No Lemmings Nearby");
-                selectedLemming = null;
+                if (hoveredAlien != null)
+                    hoveredAlien.GetComponent<LemmingBase>().highlighted = true;
+                
+                selectedAlien = hoveredAlien;
             }
         }
 
@@ -134,17 +146,19 @@ public class MouseControl : MonoBehaviour
             
             for (int i = 0; i < GameObject.FindGameObjectsWithTag("Lemming").Length; i++)      
             {                                                                                  
-                GameObject lemming = GameObject.FindGameObjectsWithTag("Lemming")[i];          
-                if (Vector2.Distance(worldPos, lemming.transform.position) < 0.4f)             
+                GameObject alien = GameObject.FindGameObjectsWithTag("Lemming")[i];          
+                if (Mathf.Abs(worldPos.x - alien.transform.position.x) < 0.07f
+                    && worldPos.y - alien.transform.position.y < 0.01f 
+                    && worldPos.y - alien.transform.position.y > -0.2f)      
                 {                                                                              
                     cursorImage.color = Color.red;
-                    selectedLemming = GameObject.FindGameObjectsWithTag("Lemming")[i];
-                    selectedLemmingPosition = selectedLemming.transform.position;
+                    selectedAlien = GameObject.FindGameObjectsWithTag("Lemming")[i];
+                    selectedAlienPosition = selectedAlien.transform.position;
                     break;
                 }
                 
                 cursorImage.color = Color.white;
-                selectedLemming = null;
+                selectedAlien = null;
             }
         }
     }

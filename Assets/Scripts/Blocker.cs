@@ -30,7 +30,7 @@ public class Blocker : LemmingBase
     
     private IEnumerator BlockPath()
     {
-        animator.SetBool(Blocking, true);
+        Animator.SetBool(Blocking, true);
         for (int i = 0; i < 16; i++)
         {
             Vector2 blockedPosRight = RightPos + new Vector2(1f / Ppu, i * (1f / Ppu));

@@ -21,7 +21,7 @@ public class Basher : LemmingBase
         SelfTimeScale = 1;
         counter++;
         if (counter > 1)
-            animator.SetBool(Bashing, false);
+            Animator.SetBool(Bashing, false);
         base.MoveRight();
     }
     
@@ -30,22 +30,22 @@ public class Basher : LemmingBase
         SelfTimeScale = 1;
         counter++;
         if (counter > 1)
-            animator.SetBool(Bashing, false);
+            Animator.SetBool(Bashing, false);
         base.MoveLeft();
     }
 
     public override void MoveDown()
     {
         SelfTimeScale = 1;
-        animator.SetBool(Bashing, false);
+        Animator.SetBool(Bashing, false);
         base.MoveDown();
     }
 
     private IEnumerator Bash()
     {
         counter = 0;
-        animator.SetBool(Bashing, true);
-        animator.SetBool(WalkRight, false);
+        Animator.SetBool(Bashing, true);
+        Animator.SetBool(WalkRight, false);
         SelfTimeScale = 3;
         switch (moveDir)
         {

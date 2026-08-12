@@ -27,13 +27,13 @@ public class Digger : LemmingBase
             lastDir = moveDir / 2;
             moveDir = 0;
             SelfTimeScale = 1;
-            animator.SetBool(Digging, false);
+            Animator.SetBool(Digging, false);
             yield break;
         }
         SelfTimeScale = 8;
-        animator.SetBool(Digging, true);
-        animator.SetBool(WalkRight, false);
-        animator.SetBool(Falling, false);
+        Animator.SetBool(Digging, true);
+        Animator.SetBool(WalkRight, false);
+        Animator.SetBool(Falling, false);
         for (int i = 0; i < 8; i++)
         {
             Vector2 digPos = RightPos + new Vector2(-1f / Ppu - i * (1f / Ppu), -1f / Ppu);
@@ -43,7 +43,7 @@ public class Digger : LemmingBase
                 {
                     moveDir /= 2;
                     SelfTimeScale = 1;
-                    animator.SetBool(Digging, false);
+                    Animator.SetBool(Digging, false);
                     yield break;
                 }
                 TerrainCollision.ChangeColor(digPos, Color.white, Color.black);

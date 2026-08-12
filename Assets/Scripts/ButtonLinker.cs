@@ -35,6 +35,11 @@ public class ButtonLinker : MonoBehaviour
         gameManager.ToSettingsMenu();
     }
 
+    public void FromSettingsMenu()
+    {
+        gameManager.FromSettingsMenu();
+    }
+
     public void Quit()
     {
         gameManager.Quit();
@@ -45,10 +50,18 @@ public class ButtonLinker : MonoBehaviour
         gameManager.LoadLevel(levelName);
     }
     
-    public void ChangeVolume(bool isSfx )
+    public void ChangeSfxVolume(float value)
     {
-        float volume = gameObject.GetComponent<Slider>().value;
-        gameManager.ChangeVolume(volume, isSfx);
+        float volume = value;
+        if (!gameManager) return;
+        gameManager.ChangeVolume(volume, true);
+    }
+
+    public void ChangeMusicVolume(float value)
+    {
+        float volume = value;
+        if (!gameManager) return;
+        gameManager.ChangeVolume(volume, false);
     }
     
     //settings menu functions

@@ -43,8 +43,16 @@ public class GameManager : MonoBehaviour
     public Texture2D cursorTexture;
     private PlayerInput input;
     private EventSystem eventSystem;
-    
-    
+    private Slider sfxSlider;
+    private Slider musicSlider;
+
+    private const string PREF_WIDTH = "resolution_width";
+    private const string PREF_HEIGHT = "resolution_height";
+    private const string PREF_FULLMODE = "display_mode";
+    private const string PREF_VSYNC = "resolution_vsync";
+    private const string PREF_SFXVOLUME = "sfx_volume";
+    private const string PREF_MUSICVOLUME = "music_volume";
+
     //Initialization
     void Awake()
     {
@@ -57,6 +65,7 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+        LoadPrefs();
     }
     
     void Start()
@@ -137,8 +146,10 @@ public class GameManager : MonoBehaviour
         SubscribeToInput();
         ControlsMenuSetup();
         
-        //GameObject.Find("SFX Volume Slider").GetComponent<Slider>().value = SfxVolume;
-        //GameObject.Find("Music Volume Slider").GetComponent<Slider>().value = MusicVolume;
+        sfxSlider = GameObject.Find("SFX Volume Slider").GetComponent<Slider>();
+        musicSlider = GameObject.Find("Music Volume Slider").GetComponent<Slider>();
+        sfxSlider.value = SfxVolume;
+        musicSlider.value = MusicVolume;
     }
 
     void Update()
@@ -184,6 +195,11 @@ public class GameManager : MonoBehaviour
         timeLimit = 600f;
         currentScore = 0;
         SubscribeToInput();
+        
+        sfxSlider = GameObject.Find("SFX Volume Slider").GetComponent<Slider>();
+        musicSlider = GameObject.Find("Music Volume Slider").GetComponent<Slider>();
+        sfxSlider.value = SfxVolume;
+        musicSlider.value = MusicVolume;
         
         scoreText = GameObject.Find("ScoreCounter").GetComponent<TextMeshProUGUI>();
         timeText = GameObject.Find("Timer").GetComponent<TextMeshProUGUI>();
@@ -282,7 +298,7 @@ public class GameManager : MonoBehaviour
         ControlsLevelSetup();
         MusicManager.SetMusicVolume(MusicVolume);
         MusicManager.PlayMusic(Resources.Load<AudioClip>("Sounds/" + Levels[currentLevel].Assets[2]));
-        
+        /*
         for (int i = 0; i < Levels[currentLevel].LemmingsAmount; i++)
         {
             if (!inLevel) break;
@@ -290,8 +306,11 @@ public class GameManager : MonoBehaviour
             //Debug.Log("Lemming Spawned, total: " + (i + 1));
             yield return new WaitForSeconds(1.5f); //1.5f
         }
+        */
+        Instantiate(Resources.Load("Prefabs/Normal"), Levels[currentLevel].SpawnPoint, Quaternion.identity);
+
         
-        allLemmingsSpawned = true;
+        //allLemmingsSpawned = true;
     }
     
     private IEnumerator MainMenuLoader()
@@ -317,6 +336,12 @@ public class GameManager : MonoBehaviour
         Save();
         ControlsMenuSetup();
         SubscribeToInput();
+        
+        sfxSlider = GameObject.Find("SFX Volume Slider").GetComponent<Slider>();
+        musicSlider = GameObject.Find("Music Volume Slider").GetComponent<Slider>();
+        sfxSlider.value = SfxVolume;
+        musicSlider.value = MusicVolume;
+        
         inLevel = false;
     }
     
@@ -395,82 +420,91 @@ public class GameManager : MonoBehaviour
 
     private void ContinueHandler()
     {
-        
-        if (inLevel && inSettingsMenu && !gameOver)
+        switch (inLevel)
         {
-            AudioManager.PlaySound(SoundType.UIClickOut);
-            GameObject.Find("Settings Menu").GetComponent<Canvas>().enabled = false;
-            if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+            case true when inSettingsMenu && !gameOver:
             {
-                eventSystem.SetSelectedGameObject(GameObject.Find("Settings Button"));
-                lastSelectedObject = "Settings Button";
+                AudioManager.PlaySound(SoundType.UIClickOut);
+                GameObject.Find("Settings Menu").GetComponent<Canvas>().enabled = false;
+                if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+                {
+                    eventSystem.SetSelectedGameObject(GameObject.Find("Settings Button"));
+                    lastSelectedObject = "Settings Button";
+                }
+                else 
+                    lastSelectedObject = "Settings Button";
+                inSettingsMenu = false;
+                break;
             }
-            else 
-                lastSelectedObject = "Settings Button";
-            inSettingsMenu = false;
-        }
+            case true when !inSettingsMenu && !gameOver:
+            {
+                AudioManager.PlaySound(SoundType.UIUnpaused);
+                MusicManager.ResumeMusic();
+                GameObject.Find("Pause Menu").GetComponent<Canvas>().enabled = false;
+                Time.timeScale = 1;
+                input.actions.FindActionMap("In Menu").Disable();
+                input.actions.FindActionMap("In Level").Enable();
+                eventSystem.GetComponent<InputSystemUIInputModule>().move = InputActionReference.Create(input.actions.FindActionMap("In Level").FindAction("Navigate"));
+                eventSystem.GetComponent<InputSystemUIInputModule>().point = InputActionReference.Create(input.actions.FindActionMap("In Level").FindAction("Point"));
+                eventSystem.GetComponent<InputSystemUIInputModule>().leftClick = InputActionReference.Create(input.actions.FindActionMap("In Level").FindAction("Select Lemming"));
+                isPaused = false;
+                if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+                {
+                    eventSystem.SetSelectedGameObject(GameObject.Find("Floater Button"));
+                    lastSelectedObject = "Floater Button";
+                }
+                else 
+                    lastSelectedObject = "Floater Button";
+
+                break;
+            }
+            default:
+            {
+                if (inLevelMenu && !inLevel)
+                {
+                    AudioManager.PlaySound(SoundType.UIClickOut);
+                    GameObject.Find("Levels Menu").GetComponent<Canvas>().enabled = false;
+                    inLevelMenu = false;
+                    if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+                    {
+                        eventSystem.SetSelectedGameObject(GameObject.Find("Levels"));
+                        lastSelectedObject = "Levels";
+                    }
+                    else
+                    {
+                        lastSelectedObject = "Levels";
+                        eventSystem.SetSelectedGameObject(null);
+                    }
+                }
         
-        else if (inLevel && !inSettingsMenu && !gameOver)
-        {
-            AudioManager.PlaySound(SoundType.UIUnpaused);
-            MusicManager.ResumeMusic();
-            GameObject.Find("Pause Menu").GetComponent<Canvas>().enabled = false;
-            Time.timeScale = 1;
-            input.actions.FindActionMap("In Menu").Disable();
-            input.actions.FindActionMap("In Level").Enable();
-            eventSystem.GetComponent<InputSystemUIInputModule>().move = InputActionReference.Create(input.actions.FindActionMap("In Level").FindAction("Navigate"));
-            eventSystem.GetComponent<InputSystemUIInputModule>().point = InputActionReference.Create(input.actions.FindActionMap("In Level").FindAction("Point"));
-            eventSystem.GetComponent<InputSystemUIInputModule>().leftClick = InputActionReference.Create(input.actions.FindActionMap("In Level").FindAction("Select Lemming"));
-            isPaused = false;
-            if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
-            {
-                eventSystem.SetSelectedGameObject(GameObject.Find("Floater Button"));
-                lastSelectedObject = "Floater Button";
-            }
-            else 
-                lastSelectedObject = "Floater Button";
-        }
-        
-        else if (inLevelMenu && !inLevel)
-        {
-            AudioManager.PlaySound(SoundType.UIClickOut);
-            GameObject.Find("Levels Menu").GetComponent<Canvas>().enabled = false;
-            inLevelMenu = false;
-            if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
-            {
-                eventSystem.SetSelectedGameObject(GameObject.Find("Levels"));
-                lastSelectedObject = "Levels";
-            }
-            else
-            {
-                lastSelectedObject = "Levels";
-                eventSystem.SetSelectedGameObject(null);
+                else if (!inLevel && inSettingsMenu)
+                {
+                    AudioManager.PlaySound(SoundType.UIClickOut);
+                    GameObject.Find("Settings Menu").GetComponent<Canvas>().enabled = false;
+                    inSettingsMenu = false;
+                    if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+                    {
+                        eventSystem.SetSelectedGameObject(GameObject.Find("Settings"));
+                        lastSelectedObject = "Settings";
+                    }
+                    else
+                    {
+                        lastSelectedObject = "Settings";
+                        eventSystem.SetSelectedGameObject(null);
+                    }
+                }
+                else
+                    Debug.Log("Redundant call");
+
+                break;
             }
         }
-        
-        else if (!inLevel && inSettingsMenu)
-        {
-            AudioManager.PlaySound(SoundType.UIClickOut);
-            GameObject.Find("Settings Menu").GetComponent<Canvas>().enabled = false;
-            inSettingsMenu = false;
-            if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
-            {
-                eventSystem.SetSelectedGameObject(GameObject.Find("Settings"));
-                lastSelectedObject = "Settings";
-            }
-            else
-            {
-                lastSelectedObject = "Settings";
-                eventSystem.SetSelectedGameObject(null);
-            }
-        }
-        else
-            Debug.Log("Redundant call");
     }
     
     //Button inputs
     public void Quit()
     {
+        Save();
         Application.Quit();
     }
     
@@ -524,6 +558,11 @@ public class GameManager : MonoBehaviour
     public void ToSettingsMenu()
     {
         StartCoroutine(SettingsMenuLoader());
+    }
+
+    public void FromSettingsMenu()
+    {
+        ContinueHandler();
     }
 
     private void ToMainMenu()
@@ -585,11 +624,13 @@ public class GameManager : MonoBehaviour
         {
             SfxVolume = volume;
             GameObject.Find("Audio Manager").GetComponent<AudioSource>().volume = volume;
+            SaveSFXVolume(SfxVolume);
             return;
         }
     
         MusicVolume = volume;
         MusicManager.SetMusicVolume(MusicVolume);
+        SaveMusicVolume(MusicVolume);
     }
     
     private void ControlsMenuSetup()
@@ -693,6 +734,14 @@ public class GameManager : MonoBehaviour
                 var settingsButton = settingsObj.GetComponent<Button>();
                 settingsButton.onClick.RemoveListener(ToSettingsMenu);
                 settingsButton.onClick.AddListener(ToSettingsMenu);
+            }
+            
+            var fromSettingsObj = GameObject.Find("BackFromSettings");
+            if (fromSettingsObj)
+            {
+                var fromSettingsButton = fromSettingsObj.GetComponent<Button>();
+                fromSettingsButton.onClick.RemoveListener(ContinueHandler);
+                fromSettingsButton.onClick.AddListener(ContinueHandler);
             }
             
             var exitObj = GameObject.Find("Exit Button");
@@ -1106,9 +1155,7 @@ public class GameManager : MonoBehaviour
         SaveData data = new SaveData
         {
             latestLevel = Math.Max(currentLevel, latestLevel),
-            musicVolume = MusicVolume,
-            sfxVolume = SfxVolume,
-            levelSaves = new List<LevelSaveInfo>()
+            levelSaves = new List<LevelSaveInfo>(),
         };
 
         foreach (var lvl in Levels)
@@ -1136,8 +1183,6 @@ public class GameManager : MonoBehaviour
             SaveData data = (SaveData)bf.Deserialize(file);
             file.Close();
             latestLevel = data.latestLevel;
-            MusicVolume = data.musicVolume;
-            SfxVolume = data.sfxVolume;
             foreach (var lvlData in data.levelSaves)
             {
                 var level = Levels.Find(lvl => lvl.LevelName == lvlData.levelName);
@@ -1166,8 +1211,6 @@ public class GameManager : MonoBehaviour
     {
         public List<LevelSaveInfo> levelSaves;
         public int latestLevel;
-        public float musicVolume;
-        public float sfxVolume;
     }
     
     public class LevelData
@@ -1182,5 +1225,55 @@ public class GameManager : MonoBehaviour
         public int LemmingsAmount;
         public string[] Unlocks;
         public bool FirstTimeInLevel;
+    }
+
+    public void SaveDisplayMode(int mode)
+    {
+        PlayerPrefs.SetInt(PREF_FULLMODE, mode);
+    }
+
+    public void SaveResolution(Resolution r)
+    {
+        PlayerPrefs.SetInt(PREF_WIDTH, r.width);
+        PlayerPrefs.SetInt(PREF_HEIGHT, r.height);
+    }
+
+    public void SaveVsync(int v)
+    {
+        PlayerPrefs.SetInt(PREF_VSYNC, v);
+    }
+
+    private void SaveSFXVolume(float volume)
+    {
+        PlayerPrefs.SetFloat(PREF_SFXVOLUME, volume);
+    }
+
+    private void SaveMusicVolume(float volume)
+    {
+        PlayerPrefs.SetFloat(PREF_MUSICVOLUME, volume);
+    }
+
+    public void LoadPrefs()
+    {
+        MusicVolume = PlayerPrefs.GetFloat(PREF_MUSICVOLUME);
+        SfxVolume = PlayerPrefs.GetFloat(PREF_SFXVOLUME);
+        
+        FullScreenMode mode = PlayerPrefs.GetInt(PREF_FULLMODE) switch
+        {
+            // Exclusive full screen is windows exclusive, fall back to fullscreenwindow on macos & linux
+            0 => Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor
+                ? FullScreenMode.ExclusiveFullScreen
+                : FullScreenMode.FullScreenWindow,
+            1 => FullScreenMode.FullScreenWindow,
+            2 => FullScreenMode.Windowed,
+            _ => Screen.fullScreenMode
+        };
+        
+        Screen.SetResolution(
+            PlayerPrefs.GetInt(PREF_WIDTH),
+            PlayerPrefs.GetInt(PREF_HEIGHT),
+            mode
+        );
+        QualitySettings.vSyncCount = PlayerPrefs.GetInt(PREF_VSYNC);
     }
 }

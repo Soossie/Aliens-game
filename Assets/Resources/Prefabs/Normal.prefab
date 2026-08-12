@@ -70,7 +70,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &2777842452977639860
 SpriteRenderer:
-  serializedVersion: 2
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -127,6 +127,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+  m_BlendShapeWeights: []
 --- !u!95 &-1476407799663009810
 Animator:
   serializedVersion: 7
@@ -161,6 +162,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38ce1efed231843228458d9d76b84b31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Lemming
+  normalController: {fileID: 9100000, guid: c60d889bc4321497eba1f577555e201f, type: 2}
+  highLightController: {fileID: 22100000, guid: 6499c209fc4df4ea1a8c7d3009475ae2, type: 2}
+  lastDir: 0
   moveDir: 1
   time: 0.05
 --- !u!1 &5852394806149281943
