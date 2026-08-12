@@ -150,6 +150,7 @@ public class GameManager : MonoBehaviour
         sfxSlider.value = SfxVolume;
         musicSlider.value = MusicVolume;
     }
+    
 
     void Update()
     {
@@ -1253,6 +1254,7 @@ public class GameManager : MonoBehaviour
     {
         MusicVolume = PlayerPrefs.GetFloat(PREF_MUSICVOLUME);
         SfxVolume = PlayerPrefs.GetFloat(PREF_SFXVOLUME);
+        
         
         FullScreenMode mode = PlayerPrefs.GetInt(PREF_FULLMODE) switch
         {

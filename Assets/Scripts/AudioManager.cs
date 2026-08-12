@@ -46,6 +46,7 @@ public class AudioManager : MonoBehaviour
     { 
         if (!Application.isPlaying) return;
         audioSource = GetComponent<AudioSource>();
+        _instance.audioSource.volume = PlayerPrefs.GetFloat("sfx_volume");
     }
     
     public static void PlaySound(SoundType sound, Vector3 sourcePosition = default)
