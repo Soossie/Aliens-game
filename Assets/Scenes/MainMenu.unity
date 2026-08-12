@@ -192,7 +192,7 @@ MonoBehaviour:
   inLevel: 0
   isPaused: 0
   latestLevel: 0
-  cursorTexture: {fileID: 2800000, guid: 7a0fa8c89dd1741f094631fe39992a70, type: 3}
+  cursorTexture: {fileID: 2800000, guid: 3adc6181b395c4076ac1d456966bf469, type: 3}
 --- !u!4 &38824994
 Transform:
   m_ObjectHideFlags: 0

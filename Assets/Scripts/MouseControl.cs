@@ -97,6 +97,7 @@ public class MouseControl : MonoBehaviour
                 selectedAlien.GetComponent<LemmingBase>().Die();
             else
             {
+                selectedAlienPosition = selectedAlien.transform.position;
                 gameManager.ChangeLemming(selectedAlien, selectedAlienPosition, selectedRole);
             }
             AudioManager.PlaySound(SoundType.SelectLemming);
@@ -130,10 +131,10 @@ public class MouseControl : MonoBehaviour
             if (hoveredAlien != selectedAlien)
             {
                 if (selectedAlien != null)
-                    selectedAlien.GetComponent<LemmingBase>().highlighted = false;
+                    selectedAlien.GetComponent<LemmingBase>().SetHighlighted(false);
                 
                 if (hoveredAlien != null)
-                    hoveredAlien.GetComponent<LemmingBase>().highlighted = true;
+                    hoveredAlien.GetComponent<LemmingBase>().SetHighlighted(true);
                 
                 selectedAlien = hoveredAlien;
             }
@@ -153,7 +154,6 @@ public class MouseControl : MonoBehaviour
                 {                                                                              
                     cursorImage.color = Color.red;
                     selectedAlien = GameObject.FindGameObjectsWithTag("Lemming")[i];
-                    selectedAlienPosition = selectedAlien.transform.position;
                     break;
                 }
                 

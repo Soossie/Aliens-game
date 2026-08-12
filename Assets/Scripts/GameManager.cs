@@ -140,7 +140,6 @@ public class GameManager : MonoBehaviour
             Unlocks = new[] {"Floater", "Basher", "Blocker", "Builder", "Climber", "Digger"}
         });
         */
-        Cursor.SetCursor(cursorTexture, Vector2.zero, CursorMode.Auto);
         
         Load();
         SubscribeToInput();
@@ -298,7 +297,7 @@ public class GameManager : MonoBehaviour
         ControlsLevelSetup();
         MusicManager.SetMusicVolume(MusicVolume);
         MusicManager.PlayMusic(Resources.Load<AudioClip>("Sounds/" + Levels[currentLevel].Assets[2]));
-        /*
+        
         for (int i = 0; i < Levels[currentLevel].LemmingsAmount; i++)
         {
             if (!inLevel) break;
@@ -306,11 +305,8 @@ public class GameManager : MonoBehaviour
             //Debug.Log("Lemming Spawned, total: " + (i + 1));
             yield return new WaitForSeconds(1.5f); //1.5f
         }
-        */
-        Instantiate(Resources.Load("Prefabs/Normal"), Levels[currentLevel].SpawnPoint, Quaternion.identity);
-
         
-        //allLemmingsSpawned = true;
+        allLemmingsSpawned = true;
     }
     
     private IEnumerator MainMenuLoader()

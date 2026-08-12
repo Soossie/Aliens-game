@@ -13,6 +13,7 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
 
     protected static readonly int WalkRight = Animator.StringToHash("Walk_Right");
     protected static readonly int Falling = Animator.StringToHash("Falling");
+    private static readonly int Highlighted = Animator.StringToHash("Highlighted");
     public int lastDir;
     protected float Ppu;
     private int currentLevel;
@@ -70,6 +71,12 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
         {
             Die();
         }
+    }
+    
+    public void SetHighlighted(bool value)
+    {
+        highlighted = value;
+        Animator.SetBool(Highlighted, value);
     }
 
     protected virtual void HandleMovement()
