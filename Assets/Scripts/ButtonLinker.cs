@@ -39,6 +39,16 @@ public class ButtonLinker : MonoBehaviour
     {
         gameManager.FromSettingsMenu();
     }
+    
+    public void QuitPopup()
+    {
+        gameManager.QuitPopupLink();
+    }
+
+    public void FromQuitMenu()
+    {
+        gameManager.FromQuitMenu();
+    }
 
     public void Quit()
     {

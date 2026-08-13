@@ -8,14 +8,14 @@ public class CameraController : MonoBehaviour
     private Camera mainCamera;
     private PixelPerfectCamera pixelPerfectCamera;
     
-    private float moveSpeed = 10f;
+    private readonly float moveSpeed = 10f;
     private Vector2 inputMove;
     private float inputClick;
     
     private float zoom;
-    private float zoomMultiplier = 1.5f;
+    private const float ZoomMultiplier = 1.5f;
     private int minZoom = 18;
-    private int maxZoom = 500;
+    private const int MaxZoom = 500;
     private float zoomInput;
     private Vector3 min;
     private Vector3 max;
@@ -53,7 +53,7 @@ public class CameraController : MonoBehaviour
         mainCamera = GetComponent<Camera>();
         pixelPerfectCamera = GetComponent<PixelPerfectCamera>();
         zoom = pixelPerfectCamera.assetsPPU;
-        transform.position = new Vector3(gameManager.Levels[gameManager.currentLevel].SpawnPoint.x, gameManager.Levels[gameManager.currentLevel].SpawnPoint.y, -10f);
+        transform.position = new Vector3(gameManager.Levels[gameManager.currentLevel].spawnPoint.x, gameManager.Levels[gameManager.currentLevel].spawnPoint.y, -10f);
         SpriteRenderer sr = GameObject.Find("Runtime Bitmap").GetComponent<SpriteRenderer>();
         min = sr.bounds.min;
         max = sr.bounds.max;
@@ -69,12 +69,18 @@ public class CameraController : MonoBehaviour
     void LateUpdate()
     {
         Vector3 move = new Vector3(inputMove.x, inputMove.y, 0f) * (moveSpeed * Time.deltaTime / 1.5f / zoom * 25);
-        mainCamera.transform.position = Mathf.Clamp(mainCamera.transform.position.x + move.x, min.x + mainCamera.orthographicSize * mainCamera.aspect, max.x - mainCamera.orthographicSize * mainCamera.aspect) * Vector3.right +
-                                        Mathf.Clamp(mainCamera.transform.position.y + move.y, min.y + mainCamera.orthographicSize, max.y - mainCamera.orthographicSize) * Vector3.up +
-                                        Vector3.forward * mainCamera.transform.position.z;
+        mainCamera.transform.position = 
+            Mathf.Clamp(mainCamera.transform.position.x + move.x, 
+                min.x + mainCamera.orthographicSize * mainCamera.aspect, 
+                max.x - mainCamera.orthographicSize * mainCamera.aspect) 
+            * Vector3.right 
+            + Mathf.Clamp(mainCamera.transform.position.y + move.y, 
+                min.y + mainCamera.orthographicSize, 
+                max.y - mainCamera.orthographicSize) * Vector3.up 
+            + Vector3.forward * mainCamera.transform.position.z;
         
-        zoom -= zoomInput * zoomMultiplier;
-        zoom = Mathf.Clamp(zoom, minZoom, maxZoom);
+        zoom -= zoomInput * ZoomMultiplier;
+        zoom = Mathf.Clamp(zoom, minZoom, MaxZoom);
         pixelPerfectCamera.assetsPPU = (int)zoom;
     }
 

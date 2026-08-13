@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4596d96b6c2e4498b89603e15054474, type: 3}
+  m_Name: LevelConfig
+  m_EditorClassIdentifier: Assembly-CSharp::LevelConfig
+  levels:
+  - levelName: Level 1
+    isCompleted: 0
+    perfectScore: 0
+    firstTimeInLevel: 1
+    levelSprite: {fileID: -6755918270133762594, guid: 7fccf350c49f1430f83a2b810a67d31c, type: 3}
+    bitmapSprite: {fileID: -145300700437224017, guid: 0dc7ef8bb6db9405c92f26312dee6ce0, type: 3}
+    levelMusic: {fileID: 8300000, guid: ff1a0ffe350e74f5ba99a1aa51aa3289, type: 3}
+    requiredScore: 5
+    spawnPoint: {x: -9.916667, y: -3.222222, z: 0}
+    goalPoint: {x: 8.166667, y: -8.222222, z: 0}
+    lemmingsAmount: 10
+    unlocks:
+    - Floater
+    - Basher
+  - levelName: Level 2
+    isCompleted: 0
+    perfectScore: 0
+    firstTimeInLevel: 1
+    levelSprite: {fileID: -6303040222992271790, guid: 3536a231d1bcc4488af6c4a06fa6681b, type: 3}
+    bitmapSprite: {fileID: 5455659354347671286, guid: d4a9119c2052a4350a897870119262b8, type: 3}
+    levelMusic: {fileID: 8300000, guid: e89f3b71de26045c8824e40e1428cdfe, type: 3}
+    requiredScore: 10
+    spawnPoint: {x: -9.722222, y: 0.25, z: 0}
+    goalPoint: {x: 7.666667, y: -0.8611111, z: 0}
+    lemmingsAmount: 20
+    unlocks:
+    - Floater
+    - Basher
+    - Blocker
+    - Builder
+  - levelName: Level 3
+    isCompleted: 0
+    perfectScore: 0
+    firstTimeInLevel: 1
+    levelSprite: {fileID: 2951377378213510649, guid: 8019875d2a27e4a2386ff8a720296fb4, type: 3}
+    bitmapSprite: {fileID: -1388060652737727653, guid: 5a28eb2a983cc457683495e16d42dfa5, type: 3}
+    levelMusic: {fileID: 8300000, guid: 38fa61290fc784493917d70d07c07824, type: 3}
+    requiredScore: 15
+    spawnPoint: {x: -14.05556, y: -3.402778, z: 0}
+    goalPoint: {x: 14.47222, y: -2.263889, z: 0}
+    lemmingsAmount: 25
+    unlocks:
+    - Floater
+    - Basher
+    - Blocker
+    - Builder
+    - Climber
+    - Digger

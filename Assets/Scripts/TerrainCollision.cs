@@ -136,7 +136,7 @@ public class TerrainCollision : MonoBehaviour
     
     private void GenerateRuntimeBitmap(int currentLevel)
     {
-        originalBitmapSprite = Resources.Load<Sprite>(gameManager.Levels[currentLevel].Assets[1]);
+        originalBitmapSprite = gameManager.Levels[currentLevel].bitmapSprite;
         originalBitmapTexture = originalBitmapSprite.texture;
         Color[] pixels = originalBitmapTexture.GetPixels();
         Vector2 normalizedPivot = new Vector2(
@@ -164,7 +164,7 @@ public class TerrainCollision : MonoBehaviour
 
     private void GenerateRuntimeTerrain(int currentLevel)
     {
-        originalTerrainSprite = Resources.Load<Sprite>(gameManager.Levels[currentLevel].Assets[0]);
+        originalTerrainSprite = gameManager.Levels[currentLevel].levelSprite;
         originalTerrainTexture = originalTerrainSprite.texture;
         Color[] pixels = originalTerrainTexture.GetPixels();
         Vector2 normalizedPivot = new Vector2(

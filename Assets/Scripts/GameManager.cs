@@ -16,6 +16,9 @@ public class GameManager : MonoBehaviour
 {
     private static GameManager _instance;
     public readonly List<LevelData> Levels = new();
+    [SerializeField] private LevelConfig levelConfig;
+    public GameObject[] alienPrefabs;
+    public AudioClip[] music;
     public int currentScore;
     public int currentLevel;
     public float timeLimit = 600f;
@@ -29,6 +32,7 @@ public class GameManager : MonoBehaviour
     public bool isPaused;
     private bool inLevelMenu;
     private bool inSettingsMenu;
+    private bool inQuitMenu;
     private bool selectedWithKeyboard;
     private bool newGame;
     private bool won;
@@ -40,7 +44,6 @@ public class GameManager : MonoBehaviour
 
     private TextMeshProUGUI scoreText;
     private TextMeshProUGUI timeText;
-    public Texture2D cursorTexture;
     private PlayerInput input;
     private EventSystem eventSystem;
     private Slider sfxSlider;
@@ -70,58 +73,59 @@ public class GameManager : MonoBehaviour
     
     void Start()
     {
+        /*
         Levels.Add(new LevelData
         {
-            LevelName = "Level 1",
-            IsCompleted = false,
-            PerfectScore = false,
-            FirstTimeInLevel = true,
+            levelName = "Level 1",
+            isCompleted = false,
+            perfectScore = false,
+            firstTimeInLevel = true,
             Assets = new[] { 
                 "Graphics/background_lvl_1", 
                 "Graphics/bitmap_lvl_1", 
                 "Level 1 Song" 
             },
-            RequiredScore = 5,
-            SpawnPoint = new Vector3(-9.916667f, -3.222222f),
-            GoalPoint = new Vector3(8.166667f, -8.222222f),
-            LemmingsAmount = 10,
-            Unlocks = new[] {"Floater", "Basher"}
+            requiredScore = 5,
+            spawnPoint = new Vector3(-9.916667f, -3.222222f),
+            goalPoint = new Vector3(8.166667f, -8.222222f),
+            lemmingsAmount = 10,
+            unlocks = new[] {"Floater", "Basher"}
         });
         Levels.Add(new LevelData
         {
-            LevelName = "Level 2",
-            IsCompleted = false,
-            PerfectScore = false,
-            FirstTimeInLevel = true,
+            levelName = "Level 2",
+            isCompleted = false,
+            perfectScore = false,
+            firstTimeInLevel = true,
             Assets = new[] { 
                 "Graphics/background_lvl_2", 
                 "Graphics/bitmap_lvl_2", 
                 "Level 2 Song" 
             },
-            RequiredScore = 10,
-            SpawnPoint = new Vector3(-9.722222f, 0.25f),
-            GoalPoint = new Vector3(7.666667f, -0.8611111f),
-            LemmingsAmount = 20,
-            Unlocks = new[] {"Floater", "Basher", "Blocker", "Builder"}
+            requiredScore = 10,
+            spawnPoint = new Vector3(-9.722222f, 0.25f),
+            goalPoint = new Vector3(7.666667f, -0.8611111f),
+            lemmingsAmount = 20,
+            unlocks = new[] {"Floater", "Basher", "Blocker", "Builder"}
         });
         Levels.Add(new LevelData
         {
-            LevelName = "Level 3",
-            IsCompleted = false,
-            PerfectScore = false,
-            FirstTimeInLevel = true,
+            levelName = "Level 3",
+            isCompleted = false,
+            perfectScore = false,
+            firstTimeInLevel = true,
             Assets = new[] { 
                 "Graphics/background_lvl_3", 
                 "Graphics/bitmap_lvl_3", 
                 "Level 3 Song" 
             },
-            RequiredScore = 15,
-            SpawnPoint = new Vector3(-14.05556f, -3.402778f),
-            GoalPoint = new Vector3(14.47222f, -2.263889f),
-            LemmingsAmount = 25,
-            Unlocks = new[] {"Floater", "Basher", "Blocker", "Builder", "Climber", "Digger"}
+            requiredScore = 15,
+            spawnPoint = new Vector3(-14.05556f, -3.402778f),
+            goalPoint = new Vector3(14.47222f, -2.263889f),
+            lemmingsAmount = 25,
+            unlocks = new[] {"Floater", "Basher", "Blocker", "Builder", "Climber", "Digger"}
         });
-        /*
+        
         Levels.Add(new LevelData
         {
             LevelName = "Level 4",
@@ -140,6 +144,8 @@ public class GameManager : MonoBehaviour
             Unlocks = new[] {"Floater", "Basher", "Blocker", "Builder", "Climber", "Digger"}
         });
         */
+        if (levelConfig)
+            Levels.AddRange(levelConfig.levels);
         
         Load();
         SubscribeToInput();
@@ -157,15 +163,16 @@ public class GameManager : MonoBehaviour
         if (inLevel && !isPaused && timerRunning)
             Timer();
         
-        if ((GameObject.FindGameObjectsWithTag("Lemming").Length + currentScore < Levels[currentLevel].RequiredScore 
-             || GameObject.FindGameObjectsWithTag("Lemming").Length == 0 ||
-             timeLimit == 0) && allLemmingsSpawned && inLevel && !gameOver && !isPaused)
+        if (allLemmingsSpawned && inLevel && !gameOver && !isPaused 
+            && (GameObject.FindGameObjectsWithTag("Lemming").Length + currentScore < Levels[currentLevel].requiredScore 
+                || GameObject.FindGameObjectsWithTag("Lemming").Length == 0 || timeLimit == 0))
         {
             Debug.Log("Game Over");
             StartCoroutine(LevelEnd());
         }                              
         //Debug.Log(lastSelectedObject);
         Cursor.visible = input.currentControlScheme == "Keyboard&Mouse";
+        Debug.Log(lastSelectedObject);
     }
     
     //Scene management
@@ -175,7 +182,7 @@ public class GameManager : MonoBehaviour
         isPaused = false;
         StopAllCoroutines();
         Debug.Log("Loading level: " + levelName);
-        currentLevel = Levels.FindIndex(level => level.LevelName == levelName);
+        currentLevel = Levels.FindIndex(level => level.levelName == levelName);
         Debug.Log("Current level index: " + currentLevel);
         SceneManager.LoadScene(2);
         StartCoroutine(LevelStart("Level"));
@@ -203,7 +210,7 @@ public class GameManager : MonoBehaviour
         
         scoreText = GameObject.Find("ScoreCounter").GetComponent<TextMeshProUGUI>();
         timeText = GameObject.Find("Timer").GetComponent<TextMeshProUGUI>();
-        scoreText.text = "Aliens required: " + currentScore + " / " + Levels[currentLevel].RequiredScore;
+        scoreText.text = "Aliens required: " + currentScore + " / " + Levels[currentLevel].requiredScore;
         timeText.text = timeLimit.ToString("F0");
 
         if (newGame)
@@ -212,9 +219,9 @@ public class GameManager : MonoBehaviour
             latestLevel = 0;
             foreach (var t in Levels)
             {
-                t.FirstTimeInLevel = true;
-                t.PerfectScore = false;
-                t.IsCompleted = false;
+                t.firstTimeInLevel = true;
+                t.perfectScore = false;
+                t.isCompleted = false;
             }
 
             yield return StartCoroutine(StartCutscene());
@@ -224,16 +231,16 @@ public class GameManager : MonoBehaviour
             GameObject.Find("Cutscene Canvas").GetComponent<Canvas>().enabled = false;
         }
         
-        if (Levels[currentLevel].FirstTimeInLevel)
+        if (Levels[currentLevel].firstTimeInLevel)
         {
-            Levels[currentLevel].FirstTimeInLevel = false;
+            Levels[currentLevel].firstTimeInLevel = false;
             Save();
-            var buttonslist = new List<string>(Levels[currentLevel].Unlocks) {"Kill"};
+            var buttonslist = new List<string>(Levels[currentLevel].unlocks) {"Kill"};
             buttonslist.Insert(0, "Kill");
             buttonslist.Insert(1, "Normal");
             buttonslist.Insert(buttonslist.Count-1, "Normal");
 
-            foreach (var t in Levels[currentLevel].Unlocks)
+            foreach (var t in Levels[currentLevel].unlocks)
             {
                 AudioManager.PlaySound(SoundType.RoleUnlock);
                 Color panelColor = GameObject.Find(t + " Panel").GetComponent<Image>().color;
@@ -266,11 +273,11 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            var buttonslist = new List<string>(Levels[currentLevel].Unlocks) {"Kill"};
+            var buttonslist = new List<string>(Levels[currentLevel].unlocks) {"Kill"};
             buttonslist.Insert(0, "Kill");
             buttonslist.Insert(1, "Normal");
             
-            foreach (var t in Levels[currentLevel].Unlocks)
+            foreach (var t in Levels[currentLevel].unlocks)
             {
                 Color panelColor = GameObject.Find(t + " Panel").GetComponent<Image>().color;
                 panelColor.a = 0f;
@@ -297,12 +304,13 @@ public class GameManager : MonoBehaviour
         }
         ControlsLevelSetup();
         MusicManager.SetMusicVolume(MusicVolume);
-        MusicManager.PlayMusic(Resources.Load<AudioClip>("Sounds/" + Levels[currentLevel].Assets[2]));
+        MusicManager.PlayMusic(Levels[currentLevel].levelMusic);
         
-        for (int i = 0; i < Levels[currentLevel].LemmingsAmount; i++)
+        GameObject normalAlien = Array.Find(alienPrefabs, a => a.name == "Normal");
+        for (int i = 0; i < Levels[currentLevel].lemmingsAmount; i++)
         {
             if (!inLevel) break;
-            Instantiate(Resources.Load("Prefabs/Normal"), Levels[currentLevel].SpawnPoint, Quaternion.identity);
+            Instantiate(normalAlien, Levels[currentLevel].spawnPoint, Quaternion.identity);
             //Debug.Log("Lemming Spawned, total: " + (i + 1));
             yield return new WaitForSeconds(1.5f); //1.5f
         }
@@ -324,8 +332,8 @@ public class GameManager : MonoBehaviour
 
         SceneManager.LoadScene("MainMenu");
         yield return new WaitUntil(() => SceneManager.GetActiveScene().name == "MainMenu");
-        
-        MusicManager.PlayMusic(Resources.Load<AudioClip>("Sounds/Main Menu Theme"));
+        AudioClip mainMenuTheme = Array.Find(music, clip => clip.name == "Main Menu Theme");
+        MusicManager.PlayMusic(mainMenuTheme);
         timeLimit = 600f;
         currentScore = 0;
         input.actions.FindActionMap("In Level").Disable();
@@ -360,15 +368,14 @@ public class GameManager : MonoBehaviour
         yield return null;
         if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
         {
-            eventSystem.SetSelectedGameObject(GameObject.Find("SFX Volume Slider"));
-            lastSelectedObject = "SFX Volume Slider";
+            eventSystem.SetSelectedGameObject(GameObject.Find("Display Modes"));
+            lastSelectedObject = "Display Modes";
         }
         else
         {
-            lastSelectedObject = "SFX Volume Slider";
+            lastSelectedObject = "Display Modes";
             eventSystem.SetSelectedGameObject(null);
         }
-        Debug.Log("Settings");
         inSettingsMenu = true;
     }
 
@@ -433,7 +440,7 @@ public class GameManager : MonoBehaviour
                 inSettingsMenu = false;
                 break;
             }
-            case true when !inSettingsMenu && !gameOver:
+            case true when !inSettingsMenu && !gameOver && !inQuitMenu:
             {
                 AudioManager.PlaySound(SoundType.UIUnpaused);
                 MusicManager.ResumeMusic();
@@ -455,43 +462,86 @@ public class GameManager : MonoBehaviour
 
                 break;
             }
-            default:
+            case true when inQuitMenu:
             {
-                if (inLevelMenu && !inLevel)
+                AudioManager.PlaySound(SoundType.UIClickOut);
+                GameObject.Find("Quit Menu").GetComponent<Canvas>().enabled = false;
+                inQuitMenu = false;
+                if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
                 {
-                    AudioManager.PlaySound(SoundType.UIClickOut);
-                    GameObject.Find("Levels Menu").GetComponent<Canvas>().enabled = false;
-                    inLevelMenu = false;
-                    if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
-                    {
-                        eventSystem.SetSelectedGameObject(GameObject.Find("Levels"));
-                        lastSelectedObject = "Levels";
-                    }
-                    else
-                    {
-                        lastSelectedObject = "Levels";
-                        eventSystem.SetSelectedGameObject(null);
-                    }
-                }
-        
-                else if (!inLevel && inSettingsMenu)
-                {
-                    AudioManager.PlaySound(SoundType.UIClickOut);
-                    GameObject.Find("Settings Menu").GetComponent<Canvas>().enabled = false;
-                    inSettingsMenu = false;
-                    if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
-                    {
-                        eventSystem.SetSelectedGameObject(GameObject.Find("Settings"));
-                        lastSelectedObject = "Settings";
-                    }
-                    else
-                    {
-                        lastSelectedObject = "Settings";
-                        eventSystem.SetSelectedGameObject(null);
-                    }
+                    eventSystem.SetSelectedGameObject(GameObject.Find("Exit Button"));
+                    lastSelectedObject = "Exit Button";
                 }
                 else
-                    Debug.Log("Redundant call");
+                {
+                    lastSelectedObject = "Exit Button";
+                    eventSystem.SetSelectedGameObject(null);
+                }
+
+                break;
+            }
+            default:
+            {
+                switch (inLevel)
+                {
+                    case false when inLevelMenu:
+                    {
+                        AudioManager.PlaySound(SoundType.UIClickOut);
+                        GameObject.Find("Levels Menu").GetComponent<Canvas>().enabled = false;
+                        inLevelMenu = false;
+                        if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+                        {
+                            eventSystem.SetSelectedGameObject(GameObject.Find("Levels"));
+                            lastSelectedObject = "Levels";
+                        }
+                        else
+                        {
+                            lastSelectedObject = "Levels";
+                            eventSystem.SetSelectedGameObject(null);
+                        }
+
+                        break;
+                    }
+                    case false when inSettingsMenu:
+                    {
+                        AudioManager.PlaySound(SoundType.UIClickOut);
+                        GameObject.Find("Settings Menu").GetComponent<Canvas>().enabled = false;
+                        inSettingsMenu = false;
+                        if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+                        {
+                            eventSystem.SetSelectedGameObject(GameObject.Find("Settings"));
+                            lastSelectedObject = "Settings";
+                        }
+                        else
+                        {
+                            lastSelectedObject = "Settings";
+                            eventSystem.SetSelectedGameObject(null);
+                        }
+
+                        break;
+                    }
+                    case false when inQuitMenu:
+                    {
+                        AudioManager.PlaySound(SoundType.UIClickOut);
+                        GameObject.Find("Quit Menu").GetComponent<Canvas>().enabled = false;
+                        inQuitMenu = false;
+                        if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+                        {
+                            eventSystem.SetSelectedGameObject(GameObject.Find("Quit"));
+                            lastSelectedObject = "Quit";
+                        }
+                        else
+                        {
+                            lastSelectedObject = "Quit";
+                            eventSystem.SetSelectedGameObject(null);
+                        }
+
+                        break;
+                    }
+                    default:
+                        Debug.Log("Redundant call");
+                        break;
+                }
 
                 break;
             }
@@ -499,6 +549,28 @@ public class GameManager : MonoBehaviour
     }
     
     //Button inputs
+    public void QuitPopupLink()
+    {
+        AudioManager.PlaySound(SoundType.Quit);
+        StartCoroutine(QuitPopup());
+    }
+    private IEnumerator QuitPopup()
+    {
+        GameObject.Find("Quit Menu").GetComponent<Canvas>().enabled = true;
+        yield return null;
+        if (selectedWithKeyboard || input.currentControlScheme == "Gamepad")
+        {
+            eventSystem.SetSelectedGameObject(GameObject.Find("Stay Button"));
+            lastSelectedObject = "Stay Button";
+        }
+        else
+        {
+            lastSelectedObject = "Stay Button";
+            eventSystem.SetSelectedGameObject(null);
+        }
+        inQuitMenu = true;
+    }
+
     public void Quit()
     {
         Save();
@@ -562,6 +634,11 @@ public class GameManager : MonoBehaviour
         ContinueHandler();
     }
 
+    public void FromQuitMenu()
+    {
+        ContinueHandler();
+    }
+
     private void ToMainMenu()
     {
         StopAllCoroutines();
@@ -593,7 +670,10 @@ public class GameManager : MonoBehaviour
             eventSystem.SetSelectedGameObject(null);
             selectedWithKeyboard = false;
         }
-        else if (input.currentControlScheme == "Keyboard&Mouse" && eventSystem.currentSelectedGameObject != null && context.control.device is Keyboard)
+        else if (input.currentControlScheme == "Keyboard&Mouse" 
+                 && eventSystem.currentSelectedGameObject != null
+                 && context.control.device is Keyboard
+                 && context.ReadValue<float>() < 0.5f)
         {
             selectedWithKeyboard = true;
         } 
@@ -642,7 +722,7 @@ public class GameManager : MonoBehaviour
         
         for (int i = 1; i < Levels.Count; i++)
         {
-            if (!Levels[i].IsCompleted)
+            if (!Levels[i].isCompleted)
             {
                 GameObject.Find("Level " + (i + 1) + " Button").GetComponent<Button>().enabled = false;
                 GameObject.Find("Level " + (i + 1) + " Panel").GetComponent<Image>().enabled = true;
@@ -654,7 +734,7 @@ public class GameManager : MonoBehaviour
         
         for (int i = 0; i < Levels.Count; i++)
         {
-            if (!Levels[i].PerfectScore)
+            if (!Levels[i].perfectScore)
             {
                 GameObject.Find("Level " + (i + 1) + " Star").GetComponent<Image>().enabled = false;
                 GameObject.Find("Levels Title").GetComponent<TextMeshProUGUI>().colorGradient = new VertexGradient(Color.white, Color.white, Color.white, Color.white);
@@ -741,14 +821,30 @@ public class GameManager : MonoBehaviour
                 fromSettingsButton.onClick.AddListener(ContinueHandler);
             }
             
-            var exitObj = GameObject.Find("Exit Button");
-            if (exitObj)
+            var exitPopupObj = GameObject.Find("Exit Button");
+            if (exitPopupObj)
             {
-                var exitButton = exitObj.GetComponent<Button>();
-                exitButton.onClick.RemoveListener(ToMainMenu);
-                exitButton.onClick.AddListener(ToMainMenu); 
+                var exitButton = exitPopupObj.GetComponent<Button>();
+                exitButton.onClick.RemoveListener(QuitPopupLink);
+                exitButton.onClick.AddListener(QuitPopupLink); 
             }
             
+            var exitStayObj = GameObject.Find("Stay Button");
+            if (exitStayObj)
+            {
+                var exitStayButton = exitStayObj.GetComponent<Button>();
+                exitStayButton.onClick.RemoveListener(ContinueHandler);
+                exitStayButton.onClick.AddListener(ContinueHandler);
+            }
+
+            var quitObj = GameObject.Find("Quit Button");
+            if (quitObj)
+            {
+                var quitButton = quitObj.GetComponent<Button>();
+                quitButton.onClick.RemoveListener(ToMainMenu);
+                quitButton.onClick.AddListener(ToMainMenu);
+            }
+
             var victoryExitObj = GameObject.Find("Victory Exit Button");
             if (victoryExitObj)
             {
@@ -796,9 +892,9 @@ public class GameManager : MonoBehaviour
     public void ScoreCounter() 
     {
         currentScore++;
-        if (currentScore >= Levels[currentLevel].RequiredScore)
+        if (currentScore >= Levels[currentLevel].requiredScore)
             Win();
-        scoreText.text = "Aliens required: " + currentScore + " / " + Levels[currentLevel].RequiredScore;
+        scoreText.text = "Aliens required: " + currentScore + " / " + Levels[currentLevel].requiredScore;
     }
 
     private void Win()
@@ -823,20 +919,20 @@ public class GameManager : MonoBehaviour
         eventSystem.GetComponent<InputSystemUIInputModule>().point = InputActionReference.Create(input.actions.FindActionMap("In Menu").FindAction("Point"));    
         eventSystem.GetComponent<InputSystemUIInputModule>().leftClick = InputActionReference.Create(input.actions.FindActionMap("In Menu").FindAction("Click"));
         yield return null;                                                                                                                                                          
-        float percent = (float)currentScore / Levels[currentLevel].LemmingsAmount * 100f;
+        float percent = (float)currentScore / Levels[currentLevel].lemmingsAmount * 100f;
         
         if (won)
         {
             latestLevel++;
-            Levels[currentLevel].IsCompleted = true;
+            Levels[currentLevel].isCompleted = true;
             won = false;
             Save();
             GameObject.Find("Victory Score Text").GetComponent<TextMeshProUGUI>().text = "Aliens saved: " + percent + "%";
             GameObject.Find("Victory Canvas").GetComponent<Canvas>().enabled = true;    
-            if (currentScore == Levels[currentLevel].LemmingsAmount)
+            if (currentScore == Levels[currentLevel].lemmingsAmount)
             {
                 GameObject.Find("Victory Score Text").GetComponent<TextMeshProUGUI>().text += "\nPerfect Score!";
-                Levels[currentLevel].PerfectScore = true;
+                Levels[currentLevel].perfectScore = true;
             }
             
             if (currentLevel == 2)
@@ -885,7 +981,8 @@ public class GameManager : MonoBehaviour
             }  
             
             yield return new WaitForSecondsRealtime(5.5f);
-            MusicManager.PlayMusic(Resources.Load<AudioClip>("Sounds/Victory Theme"));
+            AudioClip victoryTheme = Array.Find(music, clip => clip.name == "Victory Theme");
+            MusicManager.PlayMusic(victoryTheme);
         }
         
         else
@@ -907,8 +1004,8 @@ public class GameManager : MonoBehaviour
             }
 
             yield return new WaitForSecondsRealtime(3f);
-            MusicManager.PlayMusic(Resources.Load<AudioClip>("Sounds/Defeat Theme"));
-            Debug.Log("Playing defeat music");
+            AudioClip defeatTheme = Array.Find(music, clip => clip.name == "Defeat Theme");
+            MusicManager.PlayMusic(defeatTheme);
         }
     }
 
@@ -926,7 +1023,8 @@ public class GameManager : MonoBehaviour
     
     private IEnumerator StartCutscene()
     {
-        MusicManager.PlayMusic(Resources.Load<AudioClip>("Sounds/Level Start Music"));
+        AudioClip levelStartTheme = Array.Find(music, clip => clip.name == "Level Start Music");
+        MusicManager.PlayMusic(levelStartTheme);
         float volume = MusicVolume;
         yield return new WaitForSeconds(2f);
         Debug.Log("Cutscene started");
@@ -994,7 +1092,8 @@ public class GameManager : MonoBehaviour
     private IEnumerator EndCutscene()
     {
         GameObject.Find("Cutscene Canvas").GetComponent<Canvas>().enabled = true;
-        MusicManager.PlayMusic(Resources.Load<AudioClip>("Sounds/Level End Music"));
+        AudioClip levelEndTheme = Array.Find(music, clip => clip.name == "Level End Music");
+        MusicManager.PlayMusic(levelEndTheme);
         yield return new WaitForSeconds(2f);
         Debug.Log("Cutscene started");
         
@@ -1136,8 +1235,8 @@ public class GameManager : MonoBehaviour
 
         Destroy(lemming);
         if (lemmingType == "Kill") return;
-        
-        GameObject newLemming = Instantiate(Resources.Load("Prefabs/" + lemmingType), lemmingPosition, Quaternion.identity) as GameObject;
+        GameObject alienRolePrefab = Array.Find(alienPrefabs, a => a.name == lemmingType);
+        GameObject newLemming = Instantiate(alienRolePrefab, lemmingPosition, Quaternion.identity);
         newLemming.GetComponent<LemmingBase>().moveDir = oldLemmingMoveDir;
         newLemming.GetComponent<LemmingBase>().lastDir = oldLemmingLastDir;
     }
@@ -1159,10 +1258,10 @@ public class GameManager : MonoBehaviour
         {
             data.levelSaves.Add(new LevelSaveInfo
             {
-                levelName = lvl.LevelName,
-                isCompleted = lvl.IsCompleted,
-                perfectScore = lvl.PerfectScore,
-                firstTimeInLevel = lvl.FirstTimeInLevel
+                levelName = lvl.levelName,
+                isCompleted = lvl.isCompleted,
+                perfectScore = lvl.perfectScore,
+                firstTimeInLevel = lvl.firstTimeInLevel
             });
         }
         
@@ -1182,12 +1281,12 @@ public class GameManager : MonoBehaviour
             latestLevel = data.latestLevel;
             foreach (var lvlData in data.levelSaves)
             {
-                var level = Levels.Find(lvl => lvl.LevelName == lvlData.levelName);
+                var level = Levels.Find(lvl => lvl.levelName == lvlData.levelName);
                 if (level != null)
                 {
-                    level.IsCompleted = lvlData.isCompleted;
-                    level.PerfectScore = lvlData.perfectScore;
-                    level.FirstTimeInLevel = lvlData.firstTimeInLevel;
+                    level.isCompleted = lvlData.isCompleted;
+                    level.perfectScore = lvlData.perfectScore;
+                    level.firstTimeInLevel = lvlData.firstTimeInLevel;
                 }
             }
             //Debug.Log("Loaded");
@@ -1210,19 +1309,7 @@ public class GameManager : MonoBehaviour
         public int latestLevel;
     }
     
-    public class LevelData
-    {
-        public string LevelName;
-        public bool IsCompleted;
-        public bool PerfectScore;
-        public string[] Assets;
-        public int RequiredScore;
-        public Vector3 SpawnPoint;
-        public Vector3 GoalPoint;
-        public int LemmingsAmount;
-        public string[] Unlocks;
-        public bool FirstTimeInLevel;
-    }
+    
 
     public void SaveDisplayMode(int mode)
     {

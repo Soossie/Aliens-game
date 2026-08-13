@@ -23,7 +23,6 @@ public class MouseControl : MonoBehaviour
     private string selectedRole;
     private GameObject selectedAlien;
     private Vector2 selectedAlienPosition;
-    [SerializeField] private Texture2D highlightedCursorTexture;
     
     private void Awake()
     {
@@ -71,20 +70,20 @@ public class MouseControl : MonoBehaviour
 
     void Update()
     {
-        cursorImage.rectTransform.localScale =
-            new Vector3(Screen.height / 1080f, Screen.width / 1920f, 1f);
+        //cursorImage.rectTransform.localScale =
+            //new Vector3(Screen.height / 1080f, Screen.width / 1920f, 1f);
         if (gameManager.isPaused)
             GetComponent<VirtualMouseInput>().cursorSpeed = 0;
         else
-            GetComponent<VirtualMouseInput>().cursorSpeed = 700 * Screen.width / 1920f;
+            GetComponent<VirtualMouseInput>().cursorSpeed = 1400f;
 
     }
     
     private void LateUpdate()
     {
             Vector2 virtualMousePosition = input.virtualMouse.position.value;
-            virtualMousePosition.x = Mathf.Clamp(virtualMousePosition.x, 300f * Screen.width / 1920f, Screen.width - 300f * Screen.width / 1920f);
-            virtualMousePosition.y = Mathf.Clamp(virtualMousePosition.y, 200f * Screen.height / 1080f, Screen.height - 200f * Screen.height / 1080f);
+            virtualMousePosition.x = Mathf.Clamp(virtualMousePosition.x, 600f * Screen.width / 3840f, Screen.width - 600f * Screen.width / 3840f);
+            virtualMousePosition.y = Mathf.Clamp(virtualMousePosition.y, 450f * Screen.height / 2160f, Screen.height - 450f * Screen.height / 2160f);
             InputState.Change(input.virtualMouse.position, virtualMousePosition);
             LemmingsCursor();
     }
@@ -143,22 +142,29 @@ public class MouseControl : MonoBehaviour
         else
         {
             Vector2 screen = input.virtualMouse.position.value;
-            Vector3 worldPos = Camera.main.ScreenToWorldPoint(new Vector3(screen.x, screen.y, Camera.main.nearClipPlane));
+            Vector3 worldPos = 
+                Camera.main.ScreenToWorldPoint(new Vector3(screen.x, screen.y, Camera.main.nearClipPlane));
             
-            for (int i = 0; i < GameObject.FindGameObjectsWithTag("Lemming").Length; i++)      
-            {                                                                                  
-                GameObject alien = GameObject.FindGameObjectsWithTag("Lemming")[i];          
-                if (Mathf.Abs(worldPos.x - alien.transform.position.x) < 0.07f
-                    && worldPos.y - alien.transform.position.y < 0.01f 
-                    && worldPos.y - alien.transform.position.y > -0.2f)      
-                {                                                                              
-                    cursorImage.color = Color.red;
-                    selectedAlien = GameObject.FindGameObjectsWithTag("Lemming")[i];
+            foreach (GameObject alien in GameObject.FindGameObjectsWithTag("Lemming"))
+            {
+                if (Mathf.Abs(worldPos.x - alien.transform.position.x) < 0.15f
+                    && worldPos.y - alien.transform.position.y < 0.55f 
+                    && worldPos.y - alien.transform.position.y > -0.03f) 
+                {
+                    hoveredAlien = alien;
                     break;
                 }
+            }
+
+            if (hoveredAlien != selectedAlien)
+            {
+                if (selectedAlien != null)
+                    selectedAlien.GetComponent<LemmingBase>().SetHighlighted(false);
                 
-                cursorImage.color = Color.white;
-                selectedAlien = null;
+                if (hoveredAlien != null)
+                    hoveredAlien.GetComponent<LemmingBase>().SetHighlighted(true);
+                
+                selectedAlien = hoveredAlien;
             }
         }
     }
@@ -185,19 +191,19 @@ public class MouseControl : MonoBehaviour
                 SelectedButton("Basher Button");
                 break;
             case "4":
-                if (gameManager.Levels[gameManager.currentLevel].Unlocks.Contains("Blocker"))
+                if (gameManager.Levels[gameManager.currentLevel].unlocks.Contains("Blocker"))
                     SelectedButton("Blocker Button");
                 break;
             case "5":
-                if (gameManager.Levels[gameManager.currentLevel].Unlocks.Contains("Builder"))
+                if (gameManager.Levels[gameManager.currentLevel].unlocks.Contains("Builder"))
                     SelectedButton("Builder Button");
                 break;
             case "6":
-                if (gameManager.Levels[gameManager.currentLevel].Unlocks.Contains("Climber"))
+                if (gameManager.Levels[gameManager.currentLevel].unlocks.Contains("Climber"))
                     SelectedButton("Climber Button");
                 break;
             case "7":
-                if (gameManager.Levels[gameManager.currentLevel].Unlocks.Contains("Digger"))
+                if (gameManager.Levels[gameManager.currentLevel].unlocks.Contains("Digger"))
                     SelectedButton("Digger Button");
                 break;
             case "8":

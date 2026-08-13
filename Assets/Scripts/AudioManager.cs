@@ -16,7 +16,8 @@ public enum SoundType
     LevelWin,
     LevelFail,
     RoleUnlock,
-    GameWin
+    GameWin,
+    Quit
 }
 
 [RequireComponent(typeof(AudioSource)), ExecuteInEditMode]

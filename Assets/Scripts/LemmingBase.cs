@@ -63,7 +63,7 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
 
         spriteRenderer.flipX = moveDir < 0;
         
-        if (Vector2.Distance(transform.position, gameManager.Levels[currentLevel].GoalPoint) <= 2f / Ppu)
+        if (Vector2.Distance(transform.position, gameManager.Levels[currentLevel].goalPoint) <= 2f / Ppu)
         {
             ReachGoal();
         }
