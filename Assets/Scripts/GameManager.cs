@@ -948,7 +948,7 @@ public class GameManager : MonoBehaviour
         
         if (won)
         {
-            latestLevel++;
+            if (currentLevel == latestLevel) latestLevel++;
             Levels[currentLevel].isCompleted = true;
             won = false;
             Save();
