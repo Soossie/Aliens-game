@@ -238,8 +238,6 @@ public class GameManager : MonoBehaviour
             Save();
             var buttonslist = new List<string>(Levels[currentLevel].unlocks) {"Kill"};
             buttonslist.Insert(0, "Kill");
-            buttonslist.Insert(1, "Normal");
-            buttonslist.Insert(buttonslist.Count-1, "Normal");
 
             foreach (var t in Levels[currentLevel].unlocks)
             {
@@ -265,6 +263,10 @@ public class GameManager : MonoBehaviour
             killNav.selectOnRight = GameObject.Find(buttonslist[1] + " Button").GetComponent<Button>();
             killNav.selectOnLeft = GameObject.Find(buttonslist[^2] + " Button").GetComponent<Button>();
             GameObject.Find("Kill Button").GetComponent<Button>().navigation = killNav;
+            Debug.Log("Kill button navigation: left = " + killNav.selectOnLeft.name + ", right = " + killNav.selectOnRight.name);
+            foreach (var button in buttonslist)
+                Debug.Log("Button: " + button);
+
             
             var normalNav = GameObject.Find("Normal Button").GetComponent<Button>().navigation;
             normalNav.selectOnLeft = GameObject.Find("Kill Button").GetComponent<Button>();
@@ -276,7 +278,6 @@ public class GameManager : MonoBehaviour
         {
             var buttonslist = new List<string>(Levels[currentLevel].unlocks) {"Kill"};
             buttonslist.Insert(0, "Kill");
-            buttonslist.Insert(1, "Normal");
             
             foreach (var t in Levels[currentLevel].unlocks)
             {
@@ -296,6 +297,8 @@ public class GameManager : MonoBehaviour
             killNav.selectOnRight = GameObject.Find(buttonslist[1] + " Button").GetComponent<Button>();
             killNav.selectOnLeft = GameObject.Find(buttonslist[^2] + " Button").GetComponent<Button>();
             GameObject.Find("Kill Button").GetComponent<Button>().navigation = killNav;
+            Debug.Log("Kill button navigation: left = " + killNav.selectOnLeft.name + ", right = " + killNav.selectOnRight.name);
+
             
             var normalNav = GameObject.Find("Normal Button").GetComponent<Button>().navigation;
             normalNav.selectOnLeft = GameObject.Find("Kill Button").GetComponent<Button>();
@@ -417,7 +420,8 @@ public class GameManager : MonoBehaviour
                 yield return new WaitForNextFrameUnit();
                 eventSystem.SetSelectedGameObject(GameObject.Find(lastSelectedObject));
             }
-            lastSelectedObject = eventSystem.currentSelectedGameObject.name;
+            else
+                lastSelectedObject = eventSystem.currentSelectedGameObject.name;
         }
 
         if (input.currentControlScheme == "Gamepad")
@@ -427,7 +431,8 @@ public class GameManager : MonoBehaviour
                 yield return new WaitForNextFrameUnit();
                 eventSystem.SetSelectedGameObject(GameObject.Find(lastSelectedObject));
             }
-            lastSelectedObject = eventSystem.currentSelectedGameObject.name;
+            else
+                lastSelectedObject = eventSystem.currentSelectedGameObject.name;
         }
     }
 
@@ -687,7 +692,7 @@ public class GameManager : MonoBehaviour
     
     public void OnClick(InputAction.CallbackContext context)
     {
-        if (lastSelectedObject is "Resolutions" or "Display Modes")
+        if (lastSelectedObject is "Resolutions" or "Display Modes" && context.performed)
             inDropDown = true;
         if (input.currentControlScheme == "Keyboard&Mouse" && eventSystem.currentSelectedGameObject != null && context.control.device is not Keyboard)
         {
@@ -747,24 +752,25 @@ public class GameManager : MonoBehaviour
         
         for (int i = 1; i < Levels.Count; i++)
         {
-            if (!Levels[i].isCompleted)
+            if (Levels[i].isCompleted)
             {
-                GameObject.Find("Level " + (i + 1) + " Button").GetComponent<Button>().enabled = false;
-                GameObject.Find("Level " + (i + 1) + " Panel").GetComponent<Image>().enabled = true;
+                GameObject.Find("Level " + (i + 1) + " Panel").GetComponent<Image>().enabled = false;
+                continue;
             }
+            if (i == latestLevel) continue;
+            GameObject.Find("Level " + (i + 1) + " Button").GetComponent<Button>().enabled = false;
+            GameObject.Find("Level " + (i + 1) + " Panel").GetComponent<Image>().enabled = true;
+            Debug.Log("Level " + (i + 1) + " is locked.");
         }
         
-        GameObject.Find("Level " + (latestLevel + 1) + " Button").GetComponent<Button>().interactable = true;
-        GameObject.Find("Level " + (latestLevel + 1) + " Panel").GetComponent<Image>().enabled = false;
+        GameObject.Find("Level " + (3) + " Button").GetComponent<Button>().enabled = true;
         
         for (int i = 0; i < Levels.Count; i++)
         {
-            if (!Levels[i].perfectScore)
-            {
-                GameObject.Find("Level " + (i + 1) + " Star").GetComponent<Image>().enabled = false;
-                GameObject.Find("Levels Title").GetComponent<TextMeshProUGUI>().colorGradient = new VertexGradient(Color.white, Color.white, Color.white, Color.white);
-                GameObject.Find("Levels Title").GetComponent<TextMeshProUGUI>().color = Color.lightGreen;
-            }
+            if (Levels[i].perfectScore) continue;
+            GameObject.Find("Level " + (i + 1) + " Star").GetComponent<Image>().enabled = false;
+            GameObject.Find("Levels Title").GetComponent<TextMeshProUGUI>().colorGradient = new VertexGradient(Color.white, Color.white, Color.white, Color.white);
+            GameObject.Find("Levels Title").GetComponent<TextMeshProUGUI>().color = Color.lightGreen;
         }
         
         lastSelectedObject = "New Game";

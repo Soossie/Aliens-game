@@ -119,7 +119,7 @@ public class MouseControl : MonoBehaviour
             foreach (GameObject alien in GameObject.FindGameObjectsWithTag("Lemming"))
             {
                 if (Mathf.Abs(worldPos.x - alien.transform.position.x) < 0.12f
-                    && worldPos.y - alien.transform.position.y < 0.55f 
+                    && worldPos.y - alien.transform.position.y < 0.5f 
                     && worldPos.y - alien.transform.position.y > -0.03f) 
                 {
                     hoveredAlien = alien;
@@ -148,7 +148,7 @@ public class MouseControl : MonoBehaviour
             foreach (GameObject alien in GameObject.FindGameObjectsWithTag("Lemming"))
             {
                 if (Mathf.Abs(worldPos.x - alien.transform.position.x) < 0.15f
-                    && worldPos.y - alien.transform.position.y < 0.55f 
+                    && worldPos.y - alien.transform.position.y < 0.46f 
                     && worldPos.y - alien.transform.position.y > -0.03f) 
                 {
                     hoveredAlien = alien;

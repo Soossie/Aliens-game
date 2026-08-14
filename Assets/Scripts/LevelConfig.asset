@@ -16,7 +16,7 @@ MonoBehaviour:
   - levelName: Level 1
     isCompleted: 0
     perfectScore: 0
-    firstTimeInLevel: 1
+    firstTimeInLevel: 0
     levelSprite: {fileID: -6755918270133762594, guid: 7fccf350c49f1430f83a2b810a67d31c, type: 3}
     bitmapSprite: {fileID: -145300700437224017, guid: 0dc7ef8bb6db9405c92f26312dee6ce0, type: 3}
     levelMusic: {fileID: 8300000, guid: ff1a0ffe350e74f5ba99a1aa51aa3289, type: 3}
@@ -25,6 +25,7 @@ MonoBehaviour:
     goalPoint: {x: 8.166667, y: -8.222222, z: 0}
     lemmingsAmount: 10
     unlocks:
+    - Normal
     - Floater
     - Basher
   - levelName: Level 2
@@ -39,6 +40,7 @@ MonoBehaviour:
     goalPoint: {x: 7.666667, y: -0.8611111, z: 0}
     lemmingsAmount: 20
     unlocks:
+    - Normal
     - Floater
     - Basher
     - Blocker
@@ -55,6 +57,7 @@ MonoBehaviour:
     goalPoint: {x: 14.47222, y: -2.263889, z: 0}
     lemmingsAmount: 25
     unlocks:
+    - Normal
     - Floater
     - Basher
     - Blocker
