@@ -359,6 +359,10 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 30bb5767-b4cd-4e0a-a5fe-bf97f67c9c47
     m_ActionName: 'In Level/Select Roles[/Keyboard/1,/Keyboard/2,/Keyboard/3,/Keyboard/4,/Keyboard/5,/Keyboard/6,/Keyboard/7]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 63ea4715-f399-4e67-a698-5d43c887e913
+    m_ActionName: 'In Menu/Submit[/Keyboard/enter,/Keyboard/space,/DualSenseGamepadHID/buttonSouth]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: Gamepad
   m_DefaultActionMap: In Menu
@@ -4161,6 +4165,7 @@ GameObject:
   - component: {fileID: 787482974}
   - component: {fileID: 787482973}
   - component: {fileID: 787482972}
+  - component: {fileID: 787482975}
   m_Layer: 5
   m_Name: Template
   m_TagString: Untagged
@@ -4257,6 +4262,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 787482970}
   m_CullTransparentMesh: 1
+--- !u!114 &787482975
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 787482970}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 715d749c6a95148529991b8f72f0d854, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ScrollRectAutoScroll
+  scrollSpeed: 10
 --- !u!1 &792365921
 GameObject:
   m_ObjectHideFlags: 0
@@ -4269,6 +4287,7 @@ GameObject:
   - component: {fileID: 792365925}
   - component: {fileID: 792365924}
   - component: {fileID: 792365923}
+  - component: {fileID: 792365926}
   m_Layer: 5
   m_Name: Template
   m_TagString: Untagged
@@ -4365,6 +4384,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 792365921}
   m_CullTransparentMesh: 1
+--- !u!114 &792365926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 792365921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 715d749c6a95148529991b8f72f0d854, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ScrollRectAutoScroll
+  scrollSpeed: 10
 --- !u!1 &806398933
 GameObject:
   m_ObjectHideFlags: 0
@@ -9230,7 +9262,7 @@ MonoBehaviour:
   m_LeftClickAction: {fileID: 1243787162710730818, guid: a6bbd53f33d794c16952547565e79b7a, type: 3}
   m_MiddleClickAction: {fileID: 0}
   m_RightClickAction: {fileID: 0}
-  m_ScrollWheelAction: {fileID: 1725993988706080858, guid: a6bbd53f33d794c16952547565e79b7a, type: 3}
+  m_ScrollWheelAction: {fileID: -4289846301971880323, guid: a6bbd53f33d794c16952547565e79b7a, type: 3}
   m_TrackedDevicePositionAction: {fileID: 0}
   m_TrackedDeviceOrientationAction: {fileID: 0}
   m_DeselectOnBackgroundClick: 1

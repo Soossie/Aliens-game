@@ -12874,6 +12874,7 @@ GameObject:
   - component: {fileID: 1662538853}
   - component: {fileID: 1662538852}
   - component: {fileID: 1662538851}
+  - component: {fileID: 1662538854}
   m_Layer: 5
   m_Name: Template
   m_TagString: Untagged
@@ -12970,6 +12971,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1662538849}
   m_CullTransparentMesh: 1
+--- !u!114 &1662538854
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1662538849}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 715d749c6a95148529991b8f72f0d854, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ScrollRectAutoScroll
+  scrollSpeed: 10
 --- !u!1 &1666857583
 GameObject:
   m_ObjectHideFlags: 0

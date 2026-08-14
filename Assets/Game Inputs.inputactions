@@ -551,16 +551,6 @@
                     "interactions": "",
                     "initialStateCheck": false,
                     "priority": 0
-                },
-                {
-                    "name": "Scroll",
-                    "type": "Value",
-                    "id": "80b69fa0-4507-4440-b2e2-1ae2cde21621",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true,
-                    "priority": 0
                 }
             ],
             "bindings": [
@@ -814,28 +804,6 @@
                     "processors": "",
                     "groups": ";Gamepad",
                     "action": "Submit",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "e4721966-ee9a-416d-b017-12f00dda3717",
-                    "path": "<Gamepad>/rightStick",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";Gamepad",
-                    "action": "Scroll",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "a42fe7e0-c6cb-4f0e-ab04-6e1982f5a498",
-                    "path": "",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Scroll",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
     public bool isPaused;
     private bool inLevelMenu;
     private bool inSettingsMenu;
+    private bool inDropDown;
     private bool inQuitMenu;
     private bool selectedWithKeyboard;
     private bool newGame;
@@ -409,16 +410,24 @@ public class GameManager : MonoBehaviour
     
     private IEnumerator MoveHandler()
     {
-        if (input.currentControlScheme == "Keyboard&Mouse" && !eventSystem.currentSelectedGameObject)
+        if (input.currentControlScheme == "Keyboard&Mouse")
         {
-            yield return new WaitForNextFrameUnit();
-            eventSystem.SetSelectedGameObject(GameObject.Find(lastSelectedObject));
+            if (!eventSystem.currentSelectedGameObject)
+            {
+                yield return new WaitForNextFrameUnit();
+                eventSystem.SetSelectedGameObject(GameObject.Find(lastSelectedObject));
+            }
+            lastSelectedObject = eventSystem.currentSelectedGameObject.name;
         }
 
-        if (input.currentControlScheme == "Gamepad" && !eventSystem.currentSelectedGameObject)
+        if (input.currentControlScheme == "Gamepad")
         {
-            yield return new WaitForNextFrameUnit();
-            eventSystem.SetSelectedGameObject(GameObject.Find(lastSelectedObject));
+            if (!eventSystem.currentSelectedGameObject)
+            {
+                yield return new WaitForNextFrameUnit();
+                eventSystem.SetSelectedGameObject(GameObject.Find(lastSelectedObject));
+            }
+            lastSelectedObject = eventSystem.currentSelectedGameObject.name;
         }
     }
 
@@ -426,6 +435,13 @@ public class GameManager : MonoBehaviour
     {
         switch (inLevel)
         {
+            case true when inDropDown:
+            {
+                inDropDown = false;
+                GameObject.Find("Resolutions").GetComponent<TMP_Dropdown>().Hide();
+                GameObject.Find("Display Modes").GetComponent<TMP_Dropdown>().Hide();
+                break;
+            }
             case true when inSettingsMenu && !gameOver:
             {
                 AudioManager.PlaySound(SoundType.UIClickOut);
@@ -484,6 +500,13 @@ public class GameManager : MonoBehaviour
             {
                 switch (inLevel)
                 {
+                    case false when inDropDown:
+                    {
+                        inDropDown = false;
+                        GameObject.Find("Resolutions").GetComponent<TMP_Dropdown>().Hide();
+                        GameObject.Find("Display Modes").GetComponent<TMP_Dropdown>().Hide();
+                        break;
+                    }
                     case false when inLevelMenu:
                     {
                         AudioManager.PlaySound(SoundType.UIClickOut);
@@ -664,6 +687,8 @@ public class GameManager : MonoBehaviour
     
     public void OnClick(InputAction.CallbackContext context)
     {
+        if (lastSelectedObject is "Resolutions" or "Display Modes")
+            inDropDown = true;
         if (input.currentControlScheme == "Keyboard&Mouse" && eventSystem.currentSelectedGameObject != null && context.control.device is not Keyboard)
         {
             lastSelectedObject = eventSystem.currentSelectedGameObject.name;
