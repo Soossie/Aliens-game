@@ -208,6 +208,7 @@ MonoBehaviour:
   inLevel: 0
   isPaused: 0
   inDropDown: 0
+  selectedWithKeyboard: 0
   latestLevel: 0
 --- !u!4 &38824994
 Transform:

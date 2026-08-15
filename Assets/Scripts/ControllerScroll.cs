@@ -104,7 +104,7 @@ public class ScrollRectAutoScroll : MonoBehaviour, IPointerEnterHandler, IPointe
     {
         if (transform.root.name != "Settings Menu" || !correctEnabled) return;
         gameManager.lastSelectedObject = transform.parent.gameObject.name;
-        Debug.Log("lastSelectedObject: " + gameManager.lastSelectedObject);
+        //Debug.Log("lastSelectedObject: " + gameManager.lastSelectedObject);
         gameManager.OnMove();
         AudioManager.PlaySound(SoundType.UIClickOut);
     }

@@ -440,7 +440,7 @@ public class GameManager : MonoBehaviour
         {
             case true when inDropDown:
             {
-                Debug.Log("From dropdown");
+                //Debug.Log("From dropdown");
                 inDropDown = false;
                 GameObject.Find("Resolutions").GetComponent<TMP_Dropdown>().Hide();
                 GameObject.Find("Display Modes").GetComponent<TMP_Dropdown>().Hide();
