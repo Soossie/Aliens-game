@@ -169,7 +169,8 @@ public class GameManager : MonoBehaviour
                 || GameObject.FindGameObjectsWithTag("Lemming").Length == 0 || timeLimit == 0))
         {
             Debug.Log("Game Over");
-            StartCoroutine(LevelEnd());
+            if (eventSystem)
+                StartCoroutine(LevelEnd());
         }                              
         //Debug.Log(lastSelectedObject);
         Cursor.visible = input.currentControlScheme == "Keyboard&Mouse";

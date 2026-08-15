@@ -13,13 +13,11 @@ public class AlienHoverRegister : MonoBehaviour, IPointerEnterHandler, IPointerE
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        Debug.Log("Hovering over: " + eventData.pointerEnter.name);
         alienHoverInfo.currentAlienRole = eventData.pointerEnter.name;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        Debug.Log("Exiting hover over: " + eventData.pointerEnter.name);
         alienHoverInfo.HideHoverInfo();
     }
 
@@ -30,6 +28,5 @@ public class AlienHoverRegister : MonoBehaviour, IPointerEnterHandler, IPointerE
         {
             alienHoverInfo.ShowHoverInfo(alienHoverInfo.selectedAlienRole);
         }
-        Debug.Log("Selecting alien: " + eventData.selectedObject.name);
     }
 }

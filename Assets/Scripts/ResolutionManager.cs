@@ -20,7 +20,6 @@ public class ResolutionManager : MonoBehaviour
     private void Awake()
     {
         gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
-        Debug.Log("ResolutionManager Awake: GameManager found: " + (gameManager != null));
     }
 
     private void Start()

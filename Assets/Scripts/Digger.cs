@@ -20,36 +20,35 @@ public class Digger : LemmingBase
                                                                                                                                                    
     private IEnumerator Dig()                                                                                                                               
     {                                                                                                                                              
-        if (!TerrainCollision.IsWalkable(BelowPos) ||
-            !TerrainCollision.IsWalkable(LeftPos + new Vector2(1f / Ppu, -1f / Ppu)) ||
-            !TerrainCollision.IsWalkable(RightPos + new Vector2(-1f / Ppu, -1f / Ppu)))
-        {
-            lastDir = moveDir / 2;
-            moveDir = 0;
-            SelfTimeScale = 1;
-            Animator.SetBool(Digging, false);
-            yield break;
-        }
         SelfTimeScale = 8;
         Animator.SetBool(Digging, true);
         Animator.SetBool(WalkRight, false);
         Animator.SetBool(Falling, false);
+        bool onlyAir = true;
+        Debug.Log("Starting to dig");
         for (int i = 0; i < 8; i++)
         {
             Vector2 digPos = RightPos + new Vector2(-1f / Ppu - i * (1f / Ppu), -1f / Ppu);
-            if (TerrainCollision.IsWalkable(digPos))
+            if (!TerrainCollision.IsWalkable(digPos)) continue;
+            if (!TerrainCollision.IsDestroyable(digPos))
             {
-                if (!TerrainCollision.IsDestroyable(digPos))
-                {
-                    moveDir /= 2;
-                    SelfTimeScale = 1;
-                    Animator.SetBool(Digging, false);
-                    yield break;
-                }
-                TerrainCollision.ChangeColor(digPos, Color.white, Color.black);
-                yield return null;
+                moveDir /= 2;
+                SelfTimeScale = 1;
+                Animator.SetBool(Digging, false);
+                yield break;
             }
-            else break;
+            Debug.Log("Destroyable");
+            TerrainCollision.ChangeColor(digPos, Color.white, Color.black);
+            onlyAir = false;
+            yield return null;
+        }
+        if (onlyAir)
+        {
+            Debug.Log("Stopped digging because only air below");
+            moveDir = 0;
+            SelfTimeScale = 1;
+            Animator.SetBool(Digging, false);
+            yield break;
         }
         transform.position = (Vector2)transform.position + new Vector2(0f, -1f / Ppu);
     }      

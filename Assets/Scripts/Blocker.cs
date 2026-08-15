@@ -6,6 +6,7 @@ public class Blocker : LemmingBase
 
     private bool beNormal;
     private static readonly int Blocking = Animator.StringToHash("Blocking");
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     protected override void Start()
     {
@@ -26,14 +27,20 @@ public class Blocker : LemmingBase
     {
         if (beNormal)
             base.FixedUpdate();
-        if (TerrainCollision.IsWalkable(BelowPos) ||
+        if ((TerrainCollision.IsWalkable(BelowPos) ||
             TerrainCollision.IsWalkable(LeftPos + new Vector2(1f / Ppu, -1f / Ppu)) ||
-            TerrainCollision.IsWalkable(RightPos + new Vector2(-1f / Ppu, -1f / Ppu)))
+            TerrainCollision.IsWalkable(RightPos + new Vector2(-1f / Ppu, -1f / Ppu))) && beNormal)
+        {
+            Debug.Log("Blocker is now not normal lemming");
             beNormal = false;
+            StartCoroutine(BlockPath());
+        }
     }
     
     private IEnumerator BlockPath()
     {
+        Animator.SetBool(WalkRight, false);
+        Animator.SetBool(Falling, false);
         Animator.SetBool(Blocking, true);
         for (int i = 0; i < 16; i++)
         {

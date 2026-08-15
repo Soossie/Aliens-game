@@ -98,8 +98,8 @@ public class TerrainCollision : MonoBehaviour
         
         return texture.GetPixel((int)pixelPos.x, (int)pixelPos.y);
     }
-
-    public void ChangeColor(Vector2 worldPos, Color bitmapColor, Color terrainColor = default)
+    
+    public void ChangeColor(Vector2 worldPos, Color bitmapColor, Color terrainColor = default) // World position, bitmap color, terrain color (optional)
     {
         Vector2 bitmapLocalPos = bitmapSpriteRenderer.transform.InverseTransformPoint(worldPos);
         Vector2 terrainLocalPos = terrainSpriteRenderer.transform.InverseTransformPoint(worldPos);

@@ -47,7 +47,6 @@ public class AlienHoverInfo : MonoBehaviour
         
         if (!string.IsNullOrEmpty(currentAlienRole) && !canvas.enabled && cooldown == 0)
         {
-            Debug.Log("Starting cooldown, currentAlienRole: " + currentAlienRole + " that is " + string.IsNullOrEmpty(currentAlienRole));
             cooldown = CooldownTime; // Start the cooldown
         }
         else if (cooldown > 0) // Cooldown
@@ -85,7 +84,7 @@ public class AlienHoverInfo : MonoBehaviour
                 break;
             case "Builder Button":
                 titleText.text = "Builder Alien";
-                descriptionText.text = "Builds until it turns around thrice times or runs out of tiles.";
+                descriptionText.text = "Builds until it runs out of tiles or if it hits its head.";
                 canvas.enabled = true;
                 break;
             case "Climber Button":
