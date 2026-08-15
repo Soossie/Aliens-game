@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 public class MouseControl : MonoBehaviour
 {
-    private VirtualMouseInput input;
+    public VirtualMouseInput input;
     private PlayerInput playerInput;
     private InputAction clickAction;
     private InputAction navigateAction;

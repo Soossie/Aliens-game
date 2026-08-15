@@ -99,6 +99,7 @@ public class ResolutionManager : MonoBehaviour
     {
         QualitySettings.vSyncCount = selectedVsync ? 1 : 0;
         GameObject.Find("Vsync Toggle Text").GetComponent<TextMeshProUGUI>().text = selectedVsync ? "ON" : "OFF";
+        AudioManager.PlaySound(selectedVsync ? SoundType.UIClickIn : SoundType.UIClickOut);
         gameManager.SaveVsync(selectedVsync ? 1 : 0);
     }
 }

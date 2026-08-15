@@ -32,9 +32,9 @@ public class GameManager : MonoBehaviour
     public bool isPaused;
     private bool inLevelMenu;
     private bool inSettingsMenu;
-    private bool inDropDown;
+    public bool inDropDown;
     private bool inQuitMenu;
-    private bool selectedWithKeyboard;
+    public bool selectedWithKeyboard;
     private bool newGame;
     private bool won;
     private bool allLemmingsSpawned;
@@ -173,7 +173,6 @@ public class GameManager : MonoBehaviour
         }                              
         //Debug.Log(lastSelectedObject);
         Cursor.visible = input.currentControlScheme == "Keyboard&Mouse";
-        Debug.Log(lastSelectedObject);
     }
     
     //Scene management
@@ -297,8 +296,6 @@ public class GameManager : MonoBehaviour
             killNav.selectOnRight = GameObject.Find(buttonslist[1] + " Button").GetComponent<Button>();
             killNav.selectOnLeft = GameObject.Find(buttonslist[^2] + " Button").GetComponent<Button>();
             GameObject.Find("Kill Button").GetComponent<Button>().navigation = killNav;
-            Debug.Log("Kill button navigation: left = " + killNav.selectOnLeft.name + ", right = " + killNav.selectOnRight.name);
-
             
             var normalNav = GameObject.Find("Normal Button").GetComponent<Button>().navigation;
             normalNav.selectOnLeft = GameObject.Find("Kill Button").GetComponent<Button>();
@@ -348,9 +345,9 @@ public class GameManager : MonoBehaviour
         
         sfxSlider = GameObject.Find("SFX Volume Slider").GetComponent<Slider>();
         musicSlider = GameObject.Find("Music Volume Slider").GetComponent<Slider>();
-        sfxSlider.value = SfxVolume;
-        musicSlider.value = MusicVolume;
-        
+        sfxSlider.SetValueWithoutNotify(SfxVolume);
+        musicSlider.SetValueWithoutNotify(MusicVolume);
+
         inLevel = false;
     }
     
@@ -442,6 +439,7 @@ public class GameManager : MonoBehaviour
         {
             case true when inDropDown:
             {
+                Debug.Log("From dropdown");
                 inDropDown = false;
                 GameObject.Find("Resolutions").GetComponent<TMP_Dropdown>().Hide();
                 GameObject.Find("Display Modes").GetComponent<TMP_Dropdown>().Hide();
@@ -639,6 +637,7 @@ public class GameManager : MonoBehaviour
 
     private void LoadNextLevel()
     {
+        AudioManager.PlaySound(SoundType.UINewGame);
         LoadLevel("Level " + (latestLevel + 1));
     }
 
@@ -670,6 +669,7 @@ public class GameManager : MonoBehaviour
     private void ToMainMenu()
     {
         StopAllCoroutines();
+        AudioManager.PlaySound(SoundType.UIClickIn);
         StartCoroutine(MainMenuLoader());
     }
     
@@ -686,14 +686,11 @@ public class GameManager : MonoBehaviour
         {
             lastSelectedObject = eventSystem.currentSelectedGameObject.name;
             eventSystem.SetSelectedGameObject(null);
-            selectedWithKeyboard = false;
         }
     }
     
     public void OnClick(InputAction.CallbackContext context)
     {
-        if (lastSelectedObject is "Resolutions" or "Display Modes" && context.performed)
-            inDropDown = true;
         if (input.currentControlScheme == "Keyboard&Mouse" && eventSystem.currentSelectedGameObject != null && context.control.device is not Keyboard)
         {
             lastSelectedObject = eventSystem.currentSelectedGameObject.name;
@@ -704,9 +701,13 @@ public class GameManager : MonoBehaviour
                  && eventSystem.currentSelectedGameObject != null
                  && context.control.device is Keyboard
                  && context.ReadValue<float>() < 0.5f)
-        {
             selectedWithKeyboard = true;
-        } 
+        /*if (lastSelectedObject is "Resolutions" or "Display Modes" && context.performed)
+        {
+            Debug.Log("Dropdown opened");
+            inDropDown = true;
+        }*/
+        
     }
     
     public void OnPause(InputAction.CallbackContext context)
@@ -760,10 +761,7 @@ public class GameManager : MonoBehaviour
             if (i == latestLevel) continue;
             GameObject.Find("Level " + (i + 1) + " Button").GetComponent<Button>().enabled = false;
             GameObject.Find("Level " + (i + 1) + " Panel").GetComponent<Image>().enabled = true;
-            Debug.Log("Level " + (i + 1) + " is locked.");
         }
-        
-        GameObject.Find("Level " + (3) + " Button").GetComponent<Button>().enabled = true;
         
         for (int i = 0; i < Levels.Count; i++)
         {
@@ -816,6 +814,7 @@ public class GameManager : MonoBehaviour
             if (inLevel)
                 GameObject.Find("CursorVisual").GetComponent<Image>().enabled = true;
         }
+        
         StartCoroutine(MoveHandler());
     }
 
