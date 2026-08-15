@@ -1,4 +1,5 @@
 using System;
+using Sirenix.Utilities;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -17,8 +18,8 @@ public class AlienHoverInfo : MonoBehaviour
     private float cooldown;
     private GameManager gameManager;
     private Canvas canvas;
-    public string currentAlienRole;
-    public string selectedAlienRole;
+    [HideInInspector] public string currentAlienRole;
+    [HideInInspector] public string selectedAlienRole;
     private InputAction infoAction;
     private VirtualMouseInput virtualMouseInput;
     public bool showingSelected;
@@ -42,19 +43,16 @@ public class AlienHoverInfo : MonoBehaviour
         if (input.currentControlScheme == "Keyboard&Mouse")
             transform.position = Mouse.current.position.ReadValue() + new Vector2(-300,20);
         else
-        {
             transform.position = virtualMouseInput.virtualMouse.position.value;
-        }
         
-        if (currentAlienRole is not null && !canvas.enabled && cooldown == 0)
+        if (!string.IsNullOrEmpty(currentAlienRole) && !canvas.enabled && cooldown == 0)
         {
+            Debug.Log("Starting cooldown, currentAlienRole: " + currentAlienRole + " that is " + string.IsNullOrEmpty(currentAlienRole));
             cooldown = CooldownTime; // Start the cooldown
         }
         else if (cooldown > 0) // Cooldown
-        {
             cooldown -= Time.deltaTime;
-        }
-        else if (currentAlienRole is not null) // When cooldown is finished
+        else if (!string.IsNullOrEmpty(currentAlienRole)) // When cooldown is finished
         {
             ShowHoverInfo(currentAlienRole);
             cooldown = 0;
@@ -116,21 +114,16 @@ public class AlienHoverInfo : MonoBehaviour
 
     public void HideHoverInfo()
     {
+        currentAlienRole = null;
+        cooldown = 0;
+        
         if (canvas.enabled)
-        {
-            Debug.Log("Disabling");
             canvas.enabled = false;
-            currentAlienRole = null;
-        }
-        else
-        {
-            currentAlienRole = null;
-            cooldown = 0;
-        }
     }
     
     private void OnInfoRequested(InputAction.CallbackContext context)
     {
+        Debug.Log("Requested info for: " + selectedAlienRole);
         if (context.performed)
         {
             ShowHoverInfo(selectedAlienRole);

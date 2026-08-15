@@ -154,8 +154,8 @@ public class GameManager : MonoBehaviour
         
         sfxSlider = GameObject.Find("SFX Volume Slider").GetComponent<Slider>();
         musicSlider = GameObject.Find("Music Volume Slider").GetComponent<Slider>();
-        sfxSlider.value = SfxVolume;
-        musicSlider.value = MusicVolume;
+        sfxSlider.SetValueWithoutNotify(SfxVolume);
+        musicSlider.SetValueWithoutNotify(MusicVolume);
     }
     
 
@@ -205,8 +205,8 @@ public class GameManager : MonoBehaviour
         
         sfxSlider = GameObject.Find("SFX Volume Slider").GetComponent<Slider>();
         musicSlider = GameObject.Find("Music Volume Slider").GetComponent<Slider>();
-        sfxSlider.value = SfxVolume;
-        musicSlider.value = MusicVolume;
+        sfxSlider.SetValueWithoutNotify(SfxVolume);
+        musicSlider.SetValueWithoutNotify(MusicVolume);
         
         scoreText = GameObject.Find("ScoreCounter").GetComponent<TextMeshProUGUI>();
         timeText = GameObject.Find("Timer").GetComponent<TextMeshProUGUI>();

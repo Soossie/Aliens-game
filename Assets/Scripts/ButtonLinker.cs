@@ -17,9 +17,6 @@ public class ButtonLinker : MonoBehaviour
     {
         if (currentCooldown > 0)
             currentCooldown -= Time.deltaTime;
-        else 
-            currentCooldown = 0;
-        
     }
 
     public void LoadFirstLevel()
@@ -77,7 +74,7 @@ public class ButtonLinker : MonoBehaviour
         float volume = value;
         if (!gameManager) return;
         gameManager.ChangeVolume(volume, true);
-        if (currentCooldown == 0)
+        if (currentCooldown <= 0)
         {
             AudioManager.PlaySound(SoundType.SelectLemming, Vector3.zero, volume);
             currentCooldown = Cooldown;
@@ -89,12 +86,10 @@ public class ButtonLinker : MonoBehaviour
         float volume = value;
         if (!gameManager) return;
         gameManager.ChangeVolume(volume, false);
-        if (currentCooldown == 0)
+        if (currentCooldown <= 0)
         {
             AudioManager.PlaySound(SoundType.SelectLemming, Vector3.zero, volume);
             currentCooldown = Cooldown;
         }
     }
-    
-    //settings menu functions
 }

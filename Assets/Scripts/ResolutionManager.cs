@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,6 +11,8 @@ public class ResolutionManager : MonoBehaviour
     private GameManager gameManager;
     public Resolution CurrentResolution;
     public FullScreenMode currentDisplayMode;
+    private float currentCooldown;
+    private const float Cooldown = 0.1f;
     
     Resolution[] resolutions;
     private readonly List<Resolution> selectedResolutionsList = new();
@@ -19,6 +20,7 @@ public class ResolutionManager : MonoBehaviour
     private void Awake()
     {
         gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
+        Debug.Log("ResolutionManager Awake: GameManager found: " + (gameManager != null));
     }
 
     private void Start()
@@ -67,9 +69,14 @@ public class ResolutionManager : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        if (currentCooldown > 0)
+            currentCooldown -= Time.unscaledDeltaTime;
+    }
+
     public void SetResolution(int selectedResolution)
     {
-
         Screen.SetResolution(
             selectedResolutionsList[selectedResolution].width,
             selectedResolutionsList[selectedResolution].height,
@@ -101,5 +108,29 @@ public class ResolutionManager : MonoBehaviour
         GameObject.Find("Vsync Toggle Text").GetComponent<TextMeshProUGUI>().text = selectedVsync ? "ON" : "OFF";
         AudioManager.PlaySound(selectedVsync ? SoundType.UIClickIn : SoundType.UIClickOut);
         gameManager.SaveVsync(selectedVsync ? 1 : 0);
+    }
+    
+    public void ChangeMusicVolume(float value)
+    {
+        float volume = value;
+        if (!gameManager) return;
+        gameManager.ChangeVolume(volume, false);
+        if (currentCooldown <= 0)
+        {
+            AudioManager.PlaySound(SoundType.SelectLemming, Vector3.zero, volume);
+            currentCooldown = Cooldown;
+        }
+    }
+    
+    public void ChangeSfxVolume(float value)
+    {
+        float volume = value;
+        if (!gameManager) return;
+        gameManager.ChangeVolume(volume, true);
+        if (currentCooldown <= 0)
+        {
+            AudioManager.PlaySound(SoundType.SelectLemming, Vector3.zero, volume);
+            currentCooldown = Cooldown;
+        }
     }
 }
