@@ -156,6 +156,8 @@ public class GameManager : MonoBehaviour
         musicSlider = GameObject.Find("Music Volume Slider").GetComponent<Slider>();
         sfxSlider.SetValueWithoutNotify(SfxVolume);
         musicSlider.SetValueWithoutNotify(MusicVolume);
+        
+        OnControlsChanged(input);
     }
     
 
@@ -809,11 +811,21 @@ public class GameManager : MonoBehaviour
                 GameObject.Find("CursorVisual").GetComponent<Image>().enabled = false;
             if (eventSystem.currentSelectedGameObject)
                 lastSelectedObject = eventSystem.currentSelectedGameObject.name;
+            foreach(GameObject glyph in GameObject.FindGameObjectsWithTag("ControllerGlyph"))
+            {
+                glyph.GetComponent<Image>().enabled = false;
+            }
+            Debug.Log("Control glyphs disabled");
         }
         else
         {
             if (inLevel)
                 GameObject.Find("CursorVisual").GetComponent<Image>().enabled = true;
+            foreach(GameObject glyph in GameObject.FindGameObjectsWithTag("ControllerGlyph"))
+            {
+                glyph.GetComponent<Image>().enabled = true;
+            }
+            Debug.Log("Control glyphs enabled");
         }
         
         StartCoroutine(MoveHandler());

@@ -3096,7 +3096,7 @@ GameObject:
   - component: {fileID: 589016867}
   m_Layer: 5
   m_Name: Back Glyph
-  m_TagString: Untagged
+  m_TagString: ControllerGlyph
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6260,7 +6260,7 @@ GameObject:
   - component: {fileID: 1178753508}
   m_Layer: 5
   m_Name: Back Glyph
-  m_TagString: Untagged
+  m_TagString: ControllerGlyph
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

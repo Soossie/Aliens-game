@@ -25,7 +25,6 @@ public class Digger : LemmingBase
         Animator.SetBool(WalkRight, false);
         Animator.SetBool(Falling, false);
         bool onlyAir = true;
-        Debug.Log("Starting to dig");
         for (int i = 0; i < 8; i++)
         {
             Vector2 digPos = RightPos + new Vector2(-1f / Ppu - i * (1f / Ppu), -1f / Ppu);
@@ -37,14 +36,12 @@ public class Digger : LemmingBase
                 Animator.SetBool(Digging, false);
                 yield break;
             }
-            Debug.Log("Destroyable");
             TerrainCollision.ChangeColor(digPos, Color.white, Color.black);
             onlyAir = false;
             yield return null;
         }
         if (onlyAir)
         {
-            Debug.Log("Stopped digging because only air below");
             moveDir = 0;
             SelfTimeScale = 1;
             Animator.SetBool(Digging, false);
