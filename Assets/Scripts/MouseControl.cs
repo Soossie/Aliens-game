@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 public class MouseControl : MonoBehaviour
 {
-    private VirtualMouseInput input;
+    public VirtualMouseInput input;
     private PlayerInput playerInput;
     private InputAction clickAction;
     private InputAction navigateAction;
@@ -222,7 +222,10 @@ public class MouseControl : MonoBehaviour
     public void SelectedButton(string buttonName)
     {
         eventSystem.SetSelectedGameObject(GameObject.Find(buttonName));
-        selectedRole = buttonName.Substring(0, buttonName.Length - " Button".Length);
-        //Debug.Log(buttonName + " selected.");
+        var newRole = buttonName.Substring(0, buttonName.Length - " Button".Length);
+        if (newRole != selectedRole)
+            AudioManager.PlaySound(SoundType.SelectLemming);
+        selectedRole = newRole;
+        
     }
 }

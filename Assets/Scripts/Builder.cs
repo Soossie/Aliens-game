@@ -1,8 +1,10 @@
+using TMPro;
 using UnityEngine;
 
 public class Builder : LemmingBase
 {
-    private int tiles = 60;
+    private  int tiles = 120;
+    [SerializeField] private TextMeshProUGUI tileCounter;
     private int backToNormal;
     private static readonly int Building = Animator.StringToHash("Build");
     protected override void Start()
@@ -11,6 +13,7 @@ public class Builder : LemmingBase
         base.Start();
         if (moveDir == 0)
             backToNormal = 3;
+        tileCounter.text = tiles.ToString();
     }
 
     protected override void HandleMovement()
@@ -47,7 +50,7 @@ public class Builder : LemmingBase
         Animator.SetBool(Falling, false);
         if (tiles == 0)
         {
-            // after building is normal lemming
+            // after building turns into a normal alien
             moveDir /= 2;
             SelfTimeScale = 1;
             backToNormal = 3;
@@ -77,7 +80,8 @@ public class Builder : LemmingBase
                     TerrainCollision.ChangeColor((RightPos + new Vector2(-1f / Ppu, -1f / Ppu)), Color.black, new Color(150f / 255f, 111f / 255f, 51f / 255f));
                     TerrainCollision.ChangeColor((RightPos + new Vector2(0, -1f / Ppu)), Color.black, new Color(150f / 255f, 111f / 255f, 51f / 255f));
                     transform.position = (Vector2)transform.position + new Vector2(1f / Ppu, 1f / Ppu);
-                    //tiles--;
+                    tiles--;
+                    tileCounter.text = tiles.ToString();
                 }
                 else
                 {
@@ -107,7 +111,8 @@ public class Builder : LemmingBase
                     TerrainCollision.ChangeColor(transform.position, Color.black, new Color(150f / 255f, 111f / 255f, 51f / 255f));
                     TerrainCollision.ChangeColor((Vector2)transform.position + new Vector2(-1f / Ppu, 0), Color.black, new Color(150f / 255f, 111f / 255f, 51f / 255f));
                     transform.position = (Vector2)transform.position + new Vector2(-1f / Ppu, 1f / Ppu);
-                    //tiles--;
+                    tiles--;
+                    tileCounter.text = tiles.ToString();
                 }
                 else
                 {

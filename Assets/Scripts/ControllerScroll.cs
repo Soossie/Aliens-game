@@ -8,20 +8,26 @@ using UnityEngine.InputSystem;
 public class ScrollRectAutoScroll : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler{
     public float scrollSpeed = 10f;
     private bool mouseOver = false;
+    private bool correctEnabled;
     private GameManager gameManager;
 
     private List<Selectable> m_Selectables = new List<Selectable>();
     private ScrollRect m_ScrollRect;
 
     private Vector2 m_NextScrollPosition = Vector2.up;
-    void OnEnable() {
+    void OnEnable()
+    {
+        if (transform.root.name != "Template(Clone)") return;
         if (m_ScrollRect) {
             m_ScrollRect.content.GetComponentsInChildren(m_Selectables);
         }
+        AudioManager.PlaySound(SoundType.UIClickIn);
+        correctEnabled = true;
+        gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
+        gameManager.inDropDown = true;
     }
     void Awake() 
     {
-        gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
         m_ScrollRect = GetComponent<ScrollRect>();
     }
     void Start() 
@@ -96,7 +102,10 @@ public class ScrollRectAutoScroll : MonoBehaviour, IPointerEnterHandler, IPointe
     
     void OnDisable()
     {
+        if (transform.root.name != "Settings Menu" || !correctEnabled) return;
         gameManager.lastSelectedObject = transform.parent.gameObject.name;
+        //Debug.Log("lastSelectedObject: " + gameManager.lastSelectedObject);
         gameManager.OnMove();
+        AudioManager.PlaySound(SoundType.UIClickOut);
     }
 }

@@ -1,13 +1,22 @@
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 public class ButtonLinker : MonoBehaviour
 {
     private GameManager gameManager;
+    private const float Cooldown = 0.1f;
+    private float currentCooldown;
 
     void Start()
     {
         gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
+    }
+
+    private void Update()
+    {
+        if (currentCooldown > 0)
+            currentCooldown -= Time.deltaTime;
     }
 
     public void LoadFirstLevel()
@@ -65,6 +74,11 @@ public class ButtonLinker : MonoBehaviour
         float volume = value;
         if (!gameManager) return;
         gameManager.ChangeVolume(volume, true);
+        if (currentCooldown <= 0)
+        {
+            AudioManager.PlaySound(SoundType.SelectLemming, Vector3.zero, volume);
+            currentCooldown = Cooldown;
+        }
     }
 
     public void ChangeMusicVolume(float value)
@@ -72,7 +86,10 @@ public class ButtonLinker : MonoBehaviour
         float volume = value;
         if (!gameManager) return;
         gameManager.ChangeVolume(volume, false);
+        if (currentCooldown <= 0)
+        {
+            AudioManager.PlaySound(SoundType.SelectLemming, Vector3.zero, volume);
+            currentCooldown = Cooldown;
+        }
     }
-    
-    //settings menu functions
 }

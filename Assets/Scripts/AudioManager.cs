@@ -50,15 +50,15 @@ public class AudioManager : MonoBehaviour
         _instance.audioSource.volume = PlayerPrefs.GetFloat("sfx_volume");
     }
     
-    public static void PlaySound(SoundType sound, Vector3 sourcePosition = default)
+    public static void PlaySound(SoundType sound, Vector3 sourcePosition = default, float volume = -1f)
     {
         AudioClip[] clips = _instance.soundList[(int)sound].Sounds;
         AudioClip randomClip = clips[UnityEngine.Random.Range(0, clips.Length)];
         
         if (sourcePosition != default)
-            AudioSource.PlayClipAtPoint(randomClip, sourcePosition, GameManager.SfxVolume);
+            AudioSource.PlayClipAtPoint(randomClip, sourcePosition, Mathf.Approximately(volume, -1f) ? GameManager.SfxVolume : volume);
         else
-            _instance.audioSource.PlayOneShot(randomClip, GameManager.SfxVolume);
+            _instance.audioSource.PlayOneShot(randomClip, Mathf.Approximately(volume, -1f) ? GameManager.SfxVolume : volume);
     }
 
 #if UNITY_EDITOR
