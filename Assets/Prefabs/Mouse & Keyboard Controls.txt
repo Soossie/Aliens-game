@@ -1,0 +1,5 @@
+Camera:  <voffset=17><sprite="W" name="W"></voffset>
+Navigate: </voffset><voffset=17><sprite="Arrow_Left" name="Arrow_Left"><sprite="Arrow_Up" name="Arrow_Up"><sprite="Arrow_Right" name="Arrow_Right"><sprite="Arrow_Down" name="Arrow_Down"></voffset> /   <voffset=17><sprite="1" name="1></voffset>-  <voffset=17><sprite="7" name="7"></voffset>
+Select Alien: <voffset=17><sprite="Mouse_Left_Key" name="Mouse_Left"></voffset>
+Alien info:  <voffset=17><sprite="Q" name="Q"></voffset>/  <voffset=17><sprite="Mouse" name="Mouse"></voffset>
+Pause:  <voffset=17><sprite="Esc" name="Esc"></voffset>/  <voffset=17><sprite="E" name="E"></voffset>

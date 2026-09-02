@@ -186,6 +186,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   levelConfig: {fileID: 11400000, guid: 8761d1f89acfe459bb4293be162e92f4, type: 2}
+  mouseKeyboardControls: {fileID: 4900000, guid: 5e65a71f87333435f8d21f13f904cfdd, type: 3}
+  PS5Controls: {fileID: 4900000, guid: cd3d895b37ec24160acc4b0d5ab5de1a, type: 3}
+  XboxControls: {fileID: 0}
   alienPrefabs:
   - {fileID: 4479435288453644100, guid: 3f64535856dd643d9826bb8bf01e4c18, type: 3}
   - {fileID: 7208160420826318918, guid: cea995e32b8cc46d59c2b03317c64edc, type: 3}
@@ -370,6 +373,10 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 63ea4715-f399-4e67-a698-5d43c887e913
     m_ActionName: 'In Menu/Submit[/Keyboard/enter,/Keyboard/space,/DualSenseGamepadHID/buttonSouth]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: a934c4fb-ba82-454e-a5b8-937b259c1b7b
+    m_ActionName: 'In Level/Alien Info[/Keyboard/q,/Mouse/middleButton]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: Gamepad
   m_DefaultActionMap: In Menu
@@ -10101,6 +10108,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1873532922}
   m_CullTransparentMesh: 1
+--- !u!1 &1875100742
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1875100744}
+  - component: {fileID: 1875100743}
+  m_Layer: 0
+  m_Name: RumbleManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1875100743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1875100742}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 729e24e32e0b04f2ab4e6df30579dc2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RumbleManager
+--- !u!4 &1875100744
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1875100742}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1881551690
 GameObject:
   m_ObjectHideFlags: 0
@@ -11781,6 +11832,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 38824994}
   - {fileID: 1934748248}
+  - {fileID: 1875100744}
   - {fileID: 695673892}
   - {fileID: 1926997861}
   - {fileID: 935850955}

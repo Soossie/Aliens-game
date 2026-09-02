@@ -10,13 +10,21 @@ using Unity.VisualScripting;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
-using UnityEngine.UI;
+using UnityEngine.UIElements;
+using Button = UnityEngine.UI.Button;
+using Cursor = UnityEngine.Cursor;
+using Image = UnityEngine.UI.Image;
+using Random = System.Random;
+using Slider = UnityEngine.UI.Slider;
 
 public class GameManager : MonoBehaviour
 {
     private static GameManager _instance;
     public readonly List<LevelData> Levels = new();
     [SerializeField] private LevelConfig levelConfig;
+    [SerializeField] private TextAsset mouseKeyboardControls;
+    [SerializeField] private TextAsset PS5Controls;
+    [SerializeField] private TextAsset XboxControls;
     public GameObject[] alienPrefabs;
     public AudioClip[] music;
     public int currentScore;
@@ -205,6 +213,7 @@ public class GameManager : MonoBehaviour
         timeLimit = 600f;
         currentScore = 0;
         SubscribeToInput();
+        OnControlsChanged(input);
         
         sfxSlider = GameObject.Find("SFX Volume Slider").GetComponent<Slider>();
         musicSlider = GameObject.Find("Music Volume Slider").GetComponent<Slider>();
@@ -381,6 +390,11 @@ public class GameManager : MonoBehaviour
             eventSystem.SetSelectedGameObject(null);
         }
         inSettingsMenu = true;
+    }
+
+    private void PauseMenuBootstrap()
+    {
+        StartCoroutine(PauseMenuLoader());
     }
 
     private IEnumerator PauseMenuLoader()
@@ -808,7 +822,10 @@ public class GameManager : MonoBehaviour
         if (pi.currentControlScheme == "Keyboard&Mouse")
         {
             if (inLevel)
+            {
                 GameObject.Find("CursorVisual").GetComponent<Image>().enabled = false;
+                GameObject.Find("Controls Text").GetComponent<TextMeshProUGUI>().text = mouseKeyboardControls.text;
+            }
             if (eventSystem.currentSelectedGameObject)
                 lastSelectedObject = eventSystem.currentSelectedGameObject.name;
             foreach(GameObject glyph in GameObject.FindGameObjectsWithTag("ControllerGlyph"))
@@ -816,11 +833,16 @@ public class GameManager : MonoBehaviour
                 glyph.GetComponent<Image>().enabled = false;
             }
             Debug.Log("Control glyphs disabled");
+            RumbleManager.Instance.Gamepad = null;
         }
         else
         {
+            RumbleManager.Instance.Gamepad = Gamepad.current;
             if (inLevel)
+            {
                 GameObject.Find("CursorVisual").GetComponent<Image>().enabled = true;
+                GameObject.Find("Controls Text").GetComponent<TextMeshProUGUI>().text = PS5Controls.text;
+            }
             foreach(GameObject glyph in GameObject.FindGameObjectsWithTag("ControllerGlyph"))
             {
                 glyph.GetComponent<Image>().enabled = true;
@@ -829,6 +851,12 @@ public class GameManager : MonoBehaviour
         }
         
         StartCoroutine(MoveHandler());
+    }
+
+    private void ChangeControlsText()
+    {
+        GameObject.Find("Controls Text").GetComponent<TextMeshProUGUI>().text = PS5Controls.text;
+        //GameObject.Find("Controls Text").GetComponent<TextMeshProUGUI>().text = mouseKeyboardControls.text;
     }
 
     private void SubscribeToInput()
@@ -846,6 +874,13 @@ public class GameManager : MonoBehaviour
                 var continueButton = continueObj.GetComponent<Button>();
                 continueButton.onClick.RemoveListener(ContinueHandler);
                 continueButton.onClick.AddListener(ContinueHandler);
+            }
+            var debugObj = GameObject.Find("Debug Button");
+            if (debugObj)
+            {
+                var debugButton = debugObj.GetComponent<Button>();
+                debugButton.onClick.RemoveListener(ChangeControlsText);
+                debugButton.onClick.AddListener(ChangeControlsText);
             }
             
             var settingsObj = GameObject.Find("Settings Button");
@@ -878,6 +913,14 @@ public class GameManager : MonoBehaviour
                 var exitStayButton = exitStayObj.GetComponent<Button>();
                 exitStayButton.onClick.RemoveListener(ContinueHandler);
                 exitStayButton.onClick.AddListener(ContinueHandler);
+            }
+            
+            var pauseObj = GameObject.Find("Pause Menu Button");
+            if (pauseObj)
+            {
+                var pauseButton = pauseObj.GetComponent<Button>();
+                pauseButton.onClick.RemoveListener(PauseMenuBootstrap);
+                pauseButton.onClick.AddListener(PauseMenuBootstrap);
             }
 
             var quitObj = GameObject.Find("Quit Button");

@@ -1,0 +1,6 @@
+Camera:  <voffset=20><size=150%><sprite="PS5_Left_Stick" name="PS5_Left_Stick"></voffset></size>
+Navigate:  <voffset=20><size=200%><sprite="PS5_Dpad" name="PS5_Dpad"></size></voffset>/  <voffset=20><sprite="PS5_L1" name="PS5_L1> <sprite="PS5_R1" name="PS5_R1"></voffset>
+Move Virtual Cursor:  <voffset=20><size=150%><sprite="PS5_Right_Stick" name="PS5_Right_Stick"></voffset></size>
+Select Alien:  <size=150%><voffset=20><sprite="PS5_Cross" name="PS5_Cross"></voffset></size>
+Alien info:  <size=150%><voffset=25><sprite="PS5_Triangle" name="PS5_Triangle"></voffset></size>
+Pause:  <size=200%><voffset=25><sprite="PS5_Options" name="PS5_Options"></voffset></size>
