@@ -85,6 +85,16 @@
                     "interactions": "",
                     "initialStateCheck": false,
                     "priority": 0
+                },
+                {
+                    "name": "Drag Camera",
+                    "type": "PassThrough",
+                    "id": "73ff5f4b-c661-4f76-b157-f36394991ef7",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
                 }
             ],
             "bindings": [
@@ -536,6 +546,17 @@
                     "processors": "",
                     "groups": ";Gamepad",
                     "action": "Alien Info",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a0958bbe-e599-48d4-adb1-43b30f685c4e",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "Drag Camera",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -1313,14 +1313,16 @@ public sealed class GameManager : MonoBehaviour
     {
         var oldLemmingMoveDir = lemming.GetComponent<LemmingBase>().moveDir; //get old movedir and apply to new one
         var oldLemmingLastDir = lemming.GetComponent<LemmingBase>().lastDir;
+        
+        var oldLemmingFallHeight = lemming.GetComponent<LemmingBase>().fallHeight;
 
+        // Probably not needed
         oldLemmingMoveDir = oldLemmingMoveDir switch
         {
             < -1 => -1,
             > 1 => 1,
             _ => oldLemmingMoveDir
         };
-
         oldLemmingLastDir = oldLemmingLastDir switch
         {
             < -1 => -1,
@@ -1332,8 +1334,10 @@ public sealed class GameManager : MonoBehaviour
         if (lemmingType == "Kill") return;
         GameObject alienRolePrefab = Array.Find(alienPrefabs, a => a.name == lemmingType);
         GameObject newLemming = Instantiate(alienRolePrefab, lemmingPosition, Quaternion.identity);
-        newLemming.GetComponent<LemmingBase>().moveDir = oldLemmingMoveDir;
-        newLemming.GetComponent<LemmingBase>().lastDir = oldLemmingLastDir;
+        var newLemmingBase = newLemming.GetComponent<LemmingBase>();
+        newLemmingBase.moveDir = oldLemmingMoveDir;
+        newLemmingBase.lastDir = oldLemmingLastDir;
+        newLemmingBase.fallHeight = oldLemmingFallHeight;
     }
 
     

@@ -19,10 +19,23 @@ public sealed class CameraController : MonoBehaviour
     private float zoomInput;
     private Vector3 min;
     private Vector3 max;
+    private Vector2 mousePosition;
+    private Vector3 cameraOrigin;
+    private Vector2 dragOriginScreen;
+    private Vector3 mouseWorldPosition;
+    private Vector3 targetPosition;
+    private bool isDragging;
+
+    public Camera MainCamera
+    {
+        get => mainCamera;
+        set => mainCamera = value;
+    }
 
     private InputAction moveAction;
     private InputAction clickAction;
     private InputAction zoomAction;
+    private InputAction dragAction;
     private PlayerInput playerInput;
     private GameManager gameManager;
 
@@ -33,10 +46,12 @@ public sealed class CameraController : MonoBehaviour
         moveAction = playerInput.actions.actionMaps[0].FindAction("Move Camera");
         clickAction = playerInput.actions.actionMaps[0].FindAction("Select Lemming");
         zoomAction = playerInput.actions.actionMaps[0].FindAction("Zoom Camera");
+        dragAction = playerInput.actions.actionMaps[0].FindAction("Drag Camera");
         
         moveAction.performed += OnMovePerformed;
         clickAction.performed += OnClickPerformed;
         zoomAction.performed += OnZoomPerformed;
+        dragAction.performed += OnDragPerformed;
     }
 
     private void OnDisable()
@@ -44,6 +59,7 @@ public sealed class CameraController : MonoBehaviour
         moveAction.performed -= OnMovePerformed;
         clickAction.performed -= OnClickPerformed;
         zoomAction.performed -= OnZoomPerformed;
+        dragAction.performed -= OnDragPerformed;
     }
     
     void Start()
@@ -57,7 +73,6 @@ public sealed class CameraController : MonoBehaviour
         SpriteRenderer sr = GameObject.Find("Runtime Bitmap").GetComponent<SpriteRenderer>();
         min = sr.bounds.min;
         max = sr.bounds.max;
-        
     }
 
     private void OnMovePerformed(InputAction.CallbackContext ctx) => inputMove = ctx.ReadValue<Vector2>();
@@ -66,10 +81,22 @@ public sealed class CameraController : MonoBehaviour
 
     private void OnZoomPerformed(InputAction.CallbackContext ctx) => zoomInput = ctx.ReadValue<float>();
 
+    private void OnDragPerformed(InputAction.CallbackContext ctx)
+    {
+        if (ctx.ReadValue<float>() > 0.5f)
+        {
+            dragOriginScreen = Mouse.current.position.ReadValue();
+            cameraOrigin = MainCamera.transform.position;
+            isDragging = true;
+        }
+        else
+            isDragging = false;
+    }
+
     void LateUpdate()
     {
         Vector3 move = new Vector3(inputMove.x, inputMove.y, 0f) * (moveSpeed * Time.deltaTime / 1.5f / zoom * 25);
-        mainCamera.transform.position = 
+        mainCamera.transform.position = pixelPerfectCamera.RoundToPixel(
             Mathf.Clamp(mainCamera.transform.position.x + move.x, 
                 min.x + mainCamera.orthographicSize * mainCamera.aspect, 
                 max.x - mainCamera.orthographicSize * mainCamera.aspect) 
@@ -77,20 +104,48 @@ public sealed class CameraController : MonoBehaviour
             + Mathf.Clamp(mainCamera.transform.position.y + move.y, 
                 min.y + mainCamera.orthographicSize, 
                 max.y - mainCamera.orthographicSize) * Vector3.up 
-            + Vector3.forward * mainCamera.transform.position.z;
+            + Vector3.forward * mainCamera.transform.position.z);
         
         zoom -= zoomInput * ZoomMultiplier;
         zoom = Mathf.Clamp(zoom, minZoom, MaxZoom);
         pixelPerfectCamera.assetsPPU = (int)zoom;
-        if (zoomInput < 0)
+        if (zoomInput == 0)
+        {
+            mousePosition = Mouse.current.position.ReadValue();
+            mouseWorldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
+            targetPosition = new Vector3(mouseWorldPosition.x, mouseWorldPosition.y, transform.position.z);
+        }
+        else if (zoomInput < 0)
         {
             //Debug.Log(zoomInput);
-            Vector2 mousePos = Mouse.current.position.ReadValue();
-            Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(mousePos);
-            Vector3 targetPos = new Vector3(mouseWorldPos.x, mouseWorldPos.y, transform.position.z);
-            transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * Mathf.Abs(zoomInput) * 5);
+            transform.position = pixelPerfectCamera.RoundToPixel(
+                Vector3.Lerp(transform.position, 
+                    targetPosition, 
+                    Time.deltaTime * Mathf.Abs(zoomInput) * 5));
             Debug.Log(transform.position);  
         }
+        
+        if (!isDragging) return;
+        
+        mousePosition = Mouse.current.position.ReadValue();
+        
+        Vector2 screenDifference = dragOriginScreen - mousePosition;
+        
+        float worldUnitsPerPixel = MainCamera.orthographicSize * 2 / Screen.height;
+        Vector3 worldDifference = new Vector3(screenDifference.x, screenDifference.y, 0) * worldUnitsPerPixel;
+        
+        Vector3 newPosition = cameraOrigin + worldDifference;
+        
+        mainCamera.transform.position = pixelPerfectCamera.RoundToPixel(
+                Mathf.Clamp(newPosition.x, 
+                    min.x + MainCamera.orthographicSize * MainCamera.aspect, 
+                    max.x - MainCamera.orthographicSize * MainCamera.aspect) 
+                * Vector3.right 
+                + Mathf.Clamp(newPosition.y, 
+                    min.y + mainCamera.orthographicSize, 
+                    max.y - mainCamera.orthographicSize) * Vector3.up 
+                + Vector3.forward * mainCamera.transform.position.z);
+        Debug.Log(mainCamera.transform.position);
     }
     
     //TODO hold right click to move camera

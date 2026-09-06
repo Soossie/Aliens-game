@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -18,7 +19,7 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
     private int currentLevel;
     protected Vector2 TargetPos;
     protected Vector2 LeftPos, RightPos, BelowPos;
-    protected int FallHeight;
+    public int fallHeight;
 
     [SerializeField]
     public int moveDir = 1;
@@ -85,9 +86,16 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
     
     public void SetHighlighted(bool value)
     {
-        Debug.Log("Setting highlighted to " + value);
         highlighted = value;
-        Animator.SetBool(Highlighted, value);
+        try
+        {
+            Animator.SetBool(Highlighted, value);
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+            throw;
+        }
     }
 
     protected virtual void HandleMovement()
@@ -209,14 +217,14 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
         {
             moveDir = lastDir;
             Animator.SetBool(Falling, false);
-            if (FallHeight < 80)
-                FallHeight = 0;
+            if (fallHeight < 80)
+                fallHeight = 0;
             else
                 Die();
             return;
         }
         transform.position = TargetPos + new Vector2(0, -1f / Ppu);
-        FallHeight++;
+        fallHeight++;
     }
 
     public virtual void Die()
