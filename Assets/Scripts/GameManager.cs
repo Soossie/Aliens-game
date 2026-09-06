@@ -17,7 +17,7 @@ using Image = UnityEngine.UI.Image;
 using Random = System.Random;
 using Slider = UnityEngine.UI.Slider;
 
-public class GameManager : MonoBehaviour
+public sealed class GameManager : MonoBehaviour
 {
     private static GameManager _instance;
     public readonly List<LevelData> Levels = new();
@@ -182,7 +182,7 @@ public class GameManager : MonoBehaviour
             if (eventSystem)
                 StartCoroutine(LevelEnd());
         }                              
-        //Debug.Log(lastSelectedObject);
+        Debug.Log(lastSelectedObject);
         Cursor.visible = input.currentControlScheme == "Keyboard&Mouse";
     }
     
@@ -701,6 +701,7 @@ public class GameManager : MonoBehaviour
     {
         if (input.currentControlScheme == "Keyboard&Mouse" && eventSystem.currentSelectedGameObject != null)
         {
+            Debug.Log("Hovering, setting " + eventSystem.currentSelectedGameObject.name);
             lastSelectedObject = eventSystem.currentSelectedGameObject.name;
             eventSystem.SetSelectedGameObject(null);
         }
@@ -710,9 +711,17 @@ public class GameManager : MonoBehaviour
     {
         if (input.currentControlScheme == "Keyboard&Mouse" && eventSystem.currentSelectedGameObject != null && context.control.device is not Keyboard)
         {
-            lastSelectedObject = eventSystem.currentSelectedGameObject.name;
-            eventSystem.SetSelectedGameObject(null);
-            selectedWithKeyboard = false;
+            if (!eventSystem.currentSelectedGameObject.name.EndsWith("r Button"))
+            {
+                Debug.Log("Non-role button " + eventSystem.currentSelectedGameObject.name + " selected, nulling.");
+                lastSelectedObject = eventSystem.currentSelectedGameObject.name;
+                eventSystem.SetSelectedGameObject(null);
+                selectedWithKeyboard = false;
+            }
+            else
+            {
+                Debug.Log("Role button unselected, not setting to null");
+            }
         }
         else if (input.currentControlScheme == "Keyboard&Mouse" 
                  && eventSystem.currentSelectedGameObject != null
@@ -795,7 +804,7 @@ public class GameManager : MonoBehaviour
     private void ControlsLevelSetup()
     {
         input.actions.FindActionMap("In Level").Enable();
-        lastSelectedObject = "Floater Button";
+        lastSelectedObject = "Normal Button";
         
         if (input.currentControlScheme == "Keyboard&Mouse")
         {

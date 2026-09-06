@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class Basher : LemmingBase
+public sealed class Basher : LemmingBase
 {
     private static readonly int Bashing = Animator.StringToHash("Bashing");
     private int counter;

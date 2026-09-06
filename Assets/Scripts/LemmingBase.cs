@@ -1,5 +1,4 @@
 using System.Collections;
-using UnityEditor.Animations;
 using UnityEngine;
 
 public abstract class LemmingBase : MonoBehaviour, ILemming
@@ -47,6 +46,10 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
 
     protected virtual void FixedUpdate()
     {
+        if (gameManager.currentLevel == 2 && (transform.position.y < -7.513874f 
+                                              || transform.position.x < -21.69611f
+                                              || transform.position.x > 18.3611f))
+                Die();
         Time.fixedDeltaTime = time;
         selfTime++;
         
@@ -67,14 +70,22 @@ public abstract class LemmingBase : MonoBehaviour, ILemming
         {
             ReachGoal();
         }
-        if (TerrainCollision.IsKillable(BelowPos) || TerrainCollision.IsKillable(LeftPos) || TerrainCollision.IsKillable(RightPos))
+        if (TerrainCollision.IsKillable(BelowPos))
         {
             Die();
+        }
+        for (int i = 0; i < 16; i++)
+        {
+            if (TerrainCollision.IsKillable(LeftPos + new Vector2(0, i / Ppu)) || TerrainCollision.IsKillable(RightPos + new Vector2(0, i / Ppu)))
+            {
+                Die();
+            }
         }
     }
     
     public void SetHighlighted(bool value)
     {
+        Debug.Log("Setting highlighted to " + value);
         highlighted = value;
         Animator.SetBool(Highlighted, value);
     }

@@ -56,7 +56,9 @@ TextureImporter:
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
+  spriteTessellationMethod: 0
   spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
   textureType: 7
   textureShape: 1
   singleChannelComponent: 0
@@ -72,8 +74,8 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 16384
-    resizeAlgorithm: 0
+    maxTextureSize: 32
+    resizeAlgorithm: 1
     textureFormat: 4
     textureCompression: 0
     compressionQuality: 50

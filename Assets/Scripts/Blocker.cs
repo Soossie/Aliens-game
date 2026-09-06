@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class Blocker : LemmingBase
+public sealed class Blocker : LemmingBase
 {
 
     private bool beNormal;

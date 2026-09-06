@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Climber : LemmingBase
+public sealed class Climber : LemmingBase
 {
     private static readonly int Climbing = Animator.StringToHash("Climbing");
 

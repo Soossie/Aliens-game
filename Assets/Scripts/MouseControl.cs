@@ -10,23 +10,21 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
-public class MouseControl : MonoBehaviour
+public sealed class MouseControl : MonoBehaviour
 {
-    public VirtualMouseInput input;
+    [HideInInspector] public VirtualMouseInput input;
     private PlayerInput playerInput;
     private InputAction clickAction;
     private InputAction navigateAction;
     private InputAction selectWithNumbersAction;
     private GameManager gameManager;
     private EventSystem eventSystem;
-    private Image cursorImage;
     private string selectedRole;
     private GameObject selectedAlien;
     private Vector2 selectedAlienPosition;
     
     private void Awake()
     {
-        cursorImage = GameObject.Find("CursorVisual").GetComponent<Image>();
         input = GetComponent<VirtualMouseInput>();
         gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
     }
@@ -56,6 +54,8 @@ public class MouseControl : MonoBehaviour
     {
         if (ctx.ReadValue<float>() > 0.5f)
             OnClick();
+        else
+            eventSystem.SetSelectedGameObject(GameObject.Find(selectedRole + " Button"));
     }
     
     private void OnNavigationPerformed(InputAction.CallbackContext ctx)
@@ -76,6 +76,7 @@ public class MouseControl : MonoBehaviour
             GetComponent<VirtualMouseInput>().cursorSpeed = 0;
         else
             GetComponent<VirtualMouseInput>().cursorSpeed = 1400f;
+        Debug.Log(eventSystem.currentSelectedGameObject);
 
     }
     
@@ -85,7 +86,8 @@ public class MouseControl : MonoBehaviour
             virtualMousePosition.x = Mathf.Clamp(virtualMousePosition.x, 600f * Screen.width / 3840f, Screen.width - 600f * Screen.width / 3840f);
             virtualMousePosition.y = Mathf.Clamp(virtualMousePosition.y, 450f * Screen.height / 2160f, Screen.height - 450f * Screen.height / 2160f);
             InputState.Change(input.virtualMouse.position, virtualMousePosition);
-            LemmingsCursor();
+            if (Time.timeScale != 0)
+                LemmingsCursor();
     }
     
     public void OnClick()
@@ -118,7 +120,7 @@ public class MouseControl : MonoBehaviour
 
             foreach (GameObject alien in GameObject.FindGameObjectsWithTag("Lemming"))
             {
-                if (Mathf.Abs(worldPos.x - alien.transform.position.x) < 0.12f
+                if (Mathf.Abs(worldPos.x - alien.transform.position.x) < 0.14f
                     && worldPos.y - alien.transform.position.y < 0.5f 
                     && worldPos.y - alien.transform.position.y > -0.03f) 
                 {
@@ -172,12 +174,14 @@ public class MouseControl : MonoBehaviour
     private void OnNavigation()
     {
         StartCoroutine(WaitAndThenSelect());
-        //Debug.Log("navigated");
+        Debug.Log("navigated");
     }
 
     private void SelectWithNumbers(InputAction.CallbackContext ctx)
     {
         //Debug.Log(ctx.control.name);
+        if (ctx.ReadValue<float>() < 0.5f)
+            return;
         
         switch (ctx.control.name)
         {
@@ -215,12 +219,14 @@ public class MouseControl : MonoBehaviour
 
     private IEnumerator WaitAndThenSelect()
     {
+        Debug.Log("wait and then select");
         yield return new WaitForNextFrameUnit();
         if (eventSystem.currentSelectedGameObject)
             SelectedButton(eventSystem.currentSelectedGameObject.name); 
     }
     public void SelectedButton(string buttonName)
     {
+        Debug.Log("selected button: " + buttonName);
         eventSystem.SetSelectedGameObject(GameObject.Find(buttonName));
         var newRole = buttonName.Substring(0, buttonName.Length - " Button".Length);
         if (newRole != selectedRole)

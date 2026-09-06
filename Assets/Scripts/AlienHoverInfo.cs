@@ -8,7 +8,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UIElements;
 
-public class AlienHoverInfo : MonoBehaviour
+public sealed class AlienHoverInfo : MonoBehaviour
 {
     private TextMeshProUGUI titleText;
     private TextMeshProUGUI descriptionText;

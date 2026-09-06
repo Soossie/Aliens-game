@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class ResolutionManager : MonoBehaviour
+public sealed class ResolutionManager : MonoBehaviour
 {
     public TMP_Dropdown resolutionDropdown; 
     public TMP_Dropdown displayModeDropdown;

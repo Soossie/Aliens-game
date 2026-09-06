@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class ButtonLinker : MonoBehaviour
+public sealed class ButtonLinker : MonoBehaviour
 {
     private GameManager gameManager;
     private const float Cooldown = 0.1f;

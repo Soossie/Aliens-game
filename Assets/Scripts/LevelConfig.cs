@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "LevelConfig", menuName = "Scriptable Objects/LevelConfig")]
-public class LevelConfig : ScriptableObject
+public sealed class LevelConfig : ScriptableObject
 {
     [SerializeField] 
     public List<LevelData> levels = new(); 

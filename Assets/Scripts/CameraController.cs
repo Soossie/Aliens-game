@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using PixelPerfectCamera = UnityEngine.Rendering.Universal.PixelPerfectCamera;
 
-public class CameraController : MonoBehaviour
+public sealed class CameraController : MonoBehaviour
 {
     private Camera mainCamera;
     private PixelPerfectCamera pixelPerfectCamera;
@@ -82,7 +82,18 @@ public class CameraController : MonoBehaviour
         zoom -= zoomInput * ZoomMultiplier;
         zoom = Mathf.Clamp(zoom, minZoom, MaxZoom);
         pixelPerfectCamera.assetsPPU = (int)zoom;
+        if (zoomInput < 0)
+        {
+            //Debug.Log(zoomInput);
+            Vector2 mousePos = Mouse.current.position.ReadValue();
+            Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(mousePos);
+            Vector3 targetPos = new Vector3(mouseWorldPos.x, mouseWorldPos.y, transform.position.z);
+            transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * Mathf.Abs(zoomInput) * 5);
+            Debug.Log(transform.position);  
+        }
     }
+    
+    //TODO hold right click to move camera
 
     void OnDestroy()
     {

@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class RumbleManager : MonoBehaviour
+public sealed class RumbleManager : MonoBehaviour
 {
     public static RumbleManager Instance;
     public Gamepad Gamepad;

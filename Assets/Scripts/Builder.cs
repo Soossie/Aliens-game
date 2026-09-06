@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-public class Builder : LemmingBase
+public sealed class Builder : LemmingBase
 {
     private  int tiles = 120;
     [SerializeField] private TextMeshProUGUI tileCounter;

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Floater : LemmingBase
+public sealed class Floater : LemmingBase
 {
     public override void MoveDown()
     { 

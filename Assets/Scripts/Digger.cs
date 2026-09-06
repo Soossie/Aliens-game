@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;                                                                                                                                 
                                                                                                                                                    
-public class Digger : LemmingBase                                                                                                                 
+public sealed class Digger : LemmingBase                                                                                                                 
 {                                 
     private static readonly int Digging = Animator.StringToHash("Digging");
 
@@ -25,9 +25,9 @@ public class Digger : LemmingBase
         Animator.SetBool(WalkRight, false);
         Animator.SetBool(Falling, false);
         bool onlyAir = true;
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 11; i++)
         {
-            Vector2 digPos = RightPos + new Vector2(-1f / Ppu - i * (1f / Ppu), -1f / Ppu);
+            Vector2 digPos = RightPos + new Vector2(1f / Ppu - i * (1f / Ppu), -1f / Ppu);
             if (!TerrainCollision.IsWalkable(digPos)) continue;
             if (!TerrainCollision.IsDestroyable(digPos))
             {

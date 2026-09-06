@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class TerrainCollision : MonoBehaviour
+public sealed class TerrainCollision : MonoBehaviour
 {
     public SpriteRenderer bitmapSpriteRenderer;
     public SpriteRenderer terrainSpriteRenderer;
@@ -64,9 +64,9 @@ public class TerrainCollision : MonoBehaviour
         return false;
     }
 
-    public bool IsKillable(Vector2 belowPos)
+    public bool IsKillable(Vector2 position)
     {
-        Color pixelcolor = GetPixelColorFromMousePosition(belowPos);
+        Color pixelcolor = GetPixelColorFromMousePosition(position);
         if (ColorsAreSimilar(pixelcolor, killableColor))
         {
             return true;

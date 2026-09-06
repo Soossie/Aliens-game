@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class AlienHoverRegister : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, ISelectHandler
+public sealed class AlienHoverRegister : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, ISelectHandler
 {
     private AlienHoverInfo alienHoverInfo;
 

@@ -1,1 +1,1 @@
-public class Lemming : LemmingBase {}
+public sealed class Lemming : LemmingBase {}

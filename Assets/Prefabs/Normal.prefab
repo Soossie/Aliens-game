@@ -162,8 +162,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38ce1efed231843228458d9d76b84b31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Lemming
-  normalController: {fileID: 9100000, guid: c60d889bc4321497eba1f577555e201f, type: 2}
-  highLightController: {fileID: 22100000, guid: 6499c209fc4df4ea1a8c7d3009475ae2, type: 2}
+  highlighted: 0
   lastDir: 0
   moveDir: 1
   time: 0.05

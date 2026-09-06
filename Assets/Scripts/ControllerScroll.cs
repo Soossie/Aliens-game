@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(ScrollRect))]
-public class ScrollRectAutoScroll : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler{
+public sealed class ScrollRectAutoScroll : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler{
     public float scrollSpeed = 10f;
     private bool mouseOver = false;
     private bool correctEnabled;
